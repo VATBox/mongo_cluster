@@ -1,0 +1,3 @@
+
+class AWS:Metadata
+end

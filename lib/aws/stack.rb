@@ -1,40 +1,30 @@
 require 'aws-sdk'
-require 'net/http'
 require 'active_support/core_ext/class/attribute_accessors'
+require_relative 'instance'
 
-module Aws::Instance
+module Aws::Stack
+
+  mattr_reader :name do
+    ::Aws::Instance.stack_name
+  end
 
   mattr_reader :id do
-    #todo Net::HTTP.get('http://169.254.169.254/latest/meta-data/instance-id')
-    'i-02749692cf5912e0b'
+    ::Aws::Instance.stack_id
   end
 
   mattr_reader :client do
-    Aws::EC2::Instance.new(id)
+    Aws::CloudFormation::Stack.new(name)
   end
 
-  def self.logical_id
-    tag('aws:cloudformation:logical-id')
+  def self.resource(logical_id: ::Aws::Instance.logical_id)
+    client.resource(logical_id)
   end
 
-  def self.stack_name
-    tag('aws:cloudformation:stack-name')
-  end
-
-  def self.stack_id
-    tag('aws:cloudformation:stack-id')
-  end
-
-  def self.private_ip
-    client.private_ip_address
-  end
-
-  def self.tag(name)
-    tags.fetch(name)
-  end
-
-  def self.tags
-    Hash[client.tags.map(&:to_a)]
+  def self.instance_logical_ids
+    client
+        .resource_summaries
+        .select {|resource_summary| resource_summary.resource_type == 'AWS::EC2::Instance'}
+        .map!(&:logical_id)
   end
 
 end

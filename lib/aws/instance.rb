@@ -1,23 +1,39 @@
 require 'aws-sdk'
+require 'net/http'
+require 'active_support/core_ext/class/attribute_accessors'
 
-module Aws::Metadata
+module Aws::Instance
 
-  def self.fetch(resource_name, *keys)
-    resource_metadata(resource_name).dig(*keys)
+  mattr_reader :id do
+    Net::HTTP.get('http://169.254.169.254/latest/meta-data/instance-id')
   end
 
-  def self.resource_metadata(resource_name)
-    JSON.parse(resource(resource_name).metadata)
+  mattr_reader :client do
+    Aws::EC2::Instance.new(id)
   end
 
-  def self.resource(name)
-    cluster_stack.resource(name)
+  def self.logical_id
+    tag('aws:cloudformation:logical-id')
   end
 
-  def self.cluster_stack(name = 'MongoCluster')
-    Aws::CloudFormation::Resource
-        .new
-        .stack(name)
+  def self.stack_name
+    tag('aws:cloudformation:stack-name')
+  end
+
+  def self.stack_id
+    tag('aws:cloudformation:stack-id')
+  end
+
+  def self.private_ip
+    client.private_ip_address
+  end
+
+  def self.tag(name)
+    tags.fetch(name)
+  end
+
+  def self.tags
+    Hash[client.tags.map(&:to_a)]
   end
 
 end

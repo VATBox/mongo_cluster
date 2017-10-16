@@ -1,3 +1,0 @@
-
-class ReplicaSet
-end

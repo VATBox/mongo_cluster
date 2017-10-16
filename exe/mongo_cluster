@@ -1,3 +1,9 @@
 #!/usr/bin/env ruby
 
 require "mongo_cluster"
+
+MongoCluster.create_key_file
+MongoCluster.create_mongod_conf
+MongoCluster.restart
+MongoCluster.create_root_user
+MongoCluster.rs_initiate

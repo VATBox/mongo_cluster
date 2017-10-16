@@ -1,3 +1,3 @@
 
-class AWS
+module Aws
 end

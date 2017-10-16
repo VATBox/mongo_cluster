@@ -1,17 +1,22 @@
-require 'mongo'
+require_relative '../helpers/executable_helper'
 
-class MongoCluster::Client
+module MongoCluster::Shell
+  extend ExecutableHelper
 
-  attr_reader :client
-
-  def initialize(host, port = 27017)
-    seed = format('%s:%s', host, port)
-    monitor = Mongo::Monitoring.new(:monitoring => true)
-    @client = Mongo::Cluster.new([seed], monitor)
+  def self.eval(cmd)
+    shell_command = format('mongo %s --eval \'%s\'', flags, cmd)
+    shell_command.concat(login_flags) if ::MongoCluster.auth?
+    run(shell_command)
   end
 
-  def options
-    client.options
+  private
+
+  def self.flags
+    format('--host %s --port %s --quiet', ::MongoCluster.replica_set.host, ::MongoCluster.replica_set.port)
+  end
+
+  def self.login_flags
+    format(' --username %s --password %s --authenticationDatabase admin', ::MongoCluster.replica_set.username, ::MongoCluster.replica_set.password)
   end
 
 end

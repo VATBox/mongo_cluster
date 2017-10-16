@@ -1,23 +1,38 @@
 require 'aws-sdk'
+require 'active_support/core_ext/class/attribute_accessors'
 
-module Aws::Metadata
+module Aws::Kms
 
-  def self.fetch_metadata(resource_name, *keys)
-    resource_metadata(resource_name).dig(*keys)
+  mattr_reader :client do
+    Aws::KMS::Client.new()
   end
 
-  def self.resource_metadata(resource_name)
-    JSON.parse(resource(resource_name).metadata)
+  mattr_reader :key_id do
+    ::Aws::Metadata.fetch('Kms')
   end
 
-  def self.resource(name)
-    cluster_stack.resource(name)
+  def self.to_chipertext(plaintext)
+    chipertext_blob = to_ciphertext_blob(plaintext)
+    Base64.encode64(chipertext_blob)
   end
 
-  def self.cluster_stack(name = 'MongoCluster')
-    Aws::CloudFormation::Resource
-        .new
-        .stack(name)
+  def self.to_plaintext(ciphertext)
+    ciphertext_blob = Base64.decode64(ciphertext)
+    decrypt(ciphertext_blob).plaintext
+  end
+
+  def self.to_ciphertext_blob(plaintext)
+    encrypt(plaintext).ciphertext_blob
+  end
+
+  private
+
+  def self.encrypt(plaintext)
+    client.encrypt(key_id: key_id, plaintext: plaintext)
+  end
+
+  def self.decrypt(ciphertext_blob)
+    client.decrypt(ciphertext_blob: ciphertext_blob)
   end
 
 end

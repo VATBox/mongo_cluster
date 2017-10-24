@@ -43,7 +43,7 @@ module MongoCluster
     end
 
     mattr_reader :limits_path do
-      Pathname('/etc/limits.conf')
+      Pathname('/etc/security/limits.d/90-mongodb.conf')
     end
 
     def self.init
@@ -54,6 +54,7 @@ module MongoCluster
       devices_to_xfs
       append_mounts
       mount
+      chown_paths
       link_journal_to_data
     end
 
@@ -64,12 +65,11 @@ module MongoCluster
     private
 
     def self.set_udev
-      run("blockdev --setra 32 #{mounts.data.device}")
-      File.write('/etc/udev/rules.d/85-ebs.rules', udev_rule(mounts.data.device))
-    end
-
-    def self.udev_rule(device)
-      format('ACTION=="add", KERNEL=="%s", ATTR{bdi/read_ahead_kb}="16"', device.basename)
+      devices
+          .each {|device| run("blockdev --setra 0 #{device}")}
+          .map {|device| format('ACTION=="add|change", KERNEL=="%s", ATTR{bdi/read_ahead_kb}="0"', device.basename)}
+          .join("\n")
+          .tap {|udev_rules_string| File.write('/etc/udev/rules.d/85-ebs.rules', udev_rules_string)}
     end
 
     def self.set_limits
@@ -80,8 +80,8 @@ module MongoCluster
       <<-EOF
 * soft nofile 64000
 * hard nofile 64000
-* soft nproc 32000
-* hard nproc 32000
+* soft nproc 64000
+* hard nproc 64000
       EOF
     end
 
@@ -91,9 +91,11 @@ module MongoCluster
     end
 
     def self.create_mounts_paths
-      paths
-          .each(&:mkpath)
-          .tap {|paths| FileUtils.chown_R('mongod', 'mongod', paths)}
+      paths.each(&:mkpath)
+    end
+
+    def self.chown_paths
+      FileUtils.chown_R('mongod', 'mongod', paths.map(&:to_s))
     end
 
     def self.link_journal_to_data

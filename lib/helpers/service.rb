@@ -12,6 +12,10 @@ module Service
     define_method("chkconfig_#{state}") {run("chkconfig #{service_name} #{state}")}
   end
 
+  def chkconfig_add
+    run("chkconfig --add #{service_name}")
+  end
+
   def service_name
     raise 'Missing service name'
   end

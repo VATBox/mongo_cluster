@@ -44,28 +44,28 @@ module ControlGroup
   def self.generate_cgconfig
     <<-EOF
 mount {
-  cpuset  = /cgroup/cpuset;
-  cpu     = /cgroup/cpu;
-  cpuacct = /cgroup/cpuacct;
-  memory  = /cgroup/memory;
-  devices = /cgroup/devices;
-}
+    cpuset  = /cgroup/cpuset;
+    cpu     = /cgroup/cpu;
+    cpuacct = /cgroup/cpuacct;
+    memory  = /cgroup/memory;
+    devices = /cgroup/devices;
+  }
 
-group mongod {
-  perm {
-    admin {
-      uid = mongod;
-      gid = mongod;
+  group mongod {
+    perm {
+      admin {
+        uid = mongod;
+        gid = mongod;
+      }
+      task {
+        uid = mongod;
+        gid = mongod;
+      }
     }
-    task {
-      uid = mongod;
-      gid = mongod;
-    }
+    memory {
+      memory.limit_in_bytes = #{memory_to_allocate};
+      }
   }
-  memory {
-    memory.limit_in_bytes = #{memory_to_allocate};
-  }
-}
     EOF
   end
 

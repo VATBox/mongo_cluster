@@ -21,8 +21,11 @@ module MongoCluster
     end
 
     def self.create_key_file
+      settings.keyFile.dirname.mkpath
       FileUtils.touch(settings.keyFile)
+      settings.keyFile.chmod(400)
       File.write(settings.keyFile, generate_key_file_string)
+      FileUtils.chown_R('mongod', 'mongod', settings.keyFile.dirname)
     end
 
     private

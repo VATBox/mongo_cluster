@@ -43,7 +43,7 @@ module MongoCluster
     end
 
     mattr_reader :limits_path do
-      Pathname('/etc/security/limits.conf')
+      Pathname('/etc/limits.conf')
     end
 
     def self.init
@@ -105,18 +105,13 @@ module MongoCluster
     end
 
     def self.append_mounts
-      fstab_path.open('r+') do |fstab|
-        fstab
-            .readlines
-            .each(&:chomp!)
-            .delete_if {|line| line.match(devices_regexp)}
-            .push(mounts_string)
-            .join("\n")
-            .tap do |fstab_string|
-          fstab.truncate(0)
-          fstab.write(fstab_string)
-        end
-      end
+      fstab_path
+          .readlines
+          .each(&:chomp!)
+          .delete_if {|line| line.match(devices_regexp)}
+          .push(mounts_string)
+          .join("\n")
+          .tap {|fstab_string| File.write(fstab_path, fstab_string)}
     end
 
     def self.mounts_string

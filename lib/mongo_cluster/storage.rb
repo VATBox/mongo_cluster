@@ -53,13 +53,17 @@ module MongoCluster
       create_mounts_paths
       devices_to_xfs
       append_mounts
-      mount
-      chown_paths
+      mount_paths
       link_journal_to_data
+      chown_paths
     end
 
-    def self.mount
-      run('mount -a')
+    def self.mount_paths
+      paths.each(&method(:mount))
+    end
+
+    def self.mount(path)
+      run("mount #{path}")
     end
 
     private

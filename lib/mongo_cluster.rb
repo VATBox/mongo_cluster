@@ -19,8 +19,8 @@ module MongoCluster
     Storage.init
     Security.init
     set_conf
-    chkconfig_on
     start
+    chkconfig_on
   end
 
   def self.read_conf

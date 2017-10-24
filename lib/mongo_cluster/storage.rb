@@ -135,7 +135,7 @@ module MongoCluster
     end
 
     def self.xfs?(device)
-      run("blkid -o value -s TYPE #{device}") == 'xfs'
+      run("lsblk --raw --noheadings --output FSTYPE #{device}") == 'xfs'
     end
 
   end

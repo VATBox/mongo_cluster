@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/mongo_cluster'
+require_relative '../lib/control_group'
+require_relative '../lib/munin_node'
+
+ControlGroup.init
+MuninNode.init
+MongoCluster.init

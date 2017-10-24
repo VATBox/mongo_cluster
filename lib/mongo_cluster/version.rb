@@ -1,3 +1,3 @@
 module MongoCluster
-  VERSION = "0.1.0"
+  VERSION = format('0.0.%s', `git rev-list --count HEAD`)
 end

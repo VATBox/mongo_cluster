@@ -1,5 +1,6 @@
+require 'open3'
 
-module ExecutableHelper
+module ExternalExecutable
 
   private
 

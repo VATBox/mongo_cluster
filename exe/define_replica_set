@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/mongo_cluster/replica_set'
+
+MongoCluster::ReplicaSet.init

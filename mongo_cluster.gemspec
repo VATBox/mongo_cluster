@@ -8,8 +8,7 @@ Gem::Specification.new do |spec|
   spec.version       = MongoCluster::VERSION
   spec.authors       = ["Steb Veksler"]
   spec.email         = ["steb@vatbox.com"]
-
-  spec.summary       = 'Mongo Cluster Helper'
+  spec.summary       = 'Mongo Cluster Creation'
   spec.description   = 'Create / Modify Mongo Cluster on AWS'
   spec.license       = "MIT"
 
@@ -32,7 +31,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
-  spec.add_development_dependency 'aws-sdk', '~> 2'
-  spec.add_development_dependency 'ruby_dig'
-  spec.add_development_dependency 'activesupport'
+  spec.add_dependency 'aws-sdk', '~> 2'
+  spec.add_dependency 'activesupport', "~> 4.2"
 end

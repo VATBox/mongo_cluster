@@ -8,10 +8,9 @@ module Aws
   module Instance
 
     mattr_reader :document do
-      # document_uri = URI.parse('http://169.254.169.254/latest/dynamic/instance-identity/document')
-      # document = Net::HTTP.get(document_uri)
-      # JSON.parse_with_cast(document)
-      {instanceId: 'i-0ee922cf960b77298', region: 'eu-west-2'}
+      document_uri = URI.parse('http://169.254.169.254/latest/dynamic/instance-identity/document')
+      document = Net::HTTP.get(document_uri)
+      JSON.parse_with_cast(document)
     end
 
     mattr_reader :id do

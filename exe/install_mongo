@@ -6,6 +6,6 @@ require_relative '../lib/munin_node'
 require_relative '../lib/transparent-hugepages'
 
 TransparentHugepages.init
-ControlGroup.init
+# ControlGroup.init
 MuninNode.init
 MongoCluster.init

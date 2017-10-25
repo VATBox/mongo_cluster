@@ -22,7 +22,7 @@ module ControlGroup
   private
 
   def self.set_memory_daemon
-    File.write('/etc/sysconfig/mongod', 'CGROUP_DAEMON="memory:mongod"')
+    File.write('/etc/sysconfig/mongod', 'CGROUP_DAEMON=memory:mongod')
   end
 
   def self.set_conf

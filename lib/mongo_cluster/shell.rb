@@ -6,14 +6,14 @@ module MongoCluster
   module Shell
     extend ExternalExecutable
 
-    def self.eval(cmd, host: 'localhost', port: ReplicaSet.port)
+    def self.eval(cmd, host: 'localhost', port: ReplicaSet.settings.port)
       shell_command = generate_shell_command(host, port, cmd)
       shell_command.concat(login_flags) if login?
       run(shell_command)
     end
 
     def self.login?
-      generate_shell_command('localhost', ReplicaSet.port, 'db.getName()')
+      generate_shell_command('localhost', ReplicaSet.settings.port, 'db.getName()')
           .concat(login_flags)
           .tap {|shell_command| run(shell_command)}
       true

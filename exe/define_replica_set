@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
-
+require_relative '../lib/aws/instance'
 require_relative '../lib/mongo_cluster/replica_set'
 
+Aws::Instance.wait_for_all_to_complete(MongoCluser::ReplicaSet.settings.size)
 MongoCluster::ReplicaSet.init

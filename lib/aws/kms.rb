@@ -11,7 +11,7 @@ module Aws
 
     mattr_reader :key_id do
       Stack
-          .client
+          .object
           .resource_summaries
           .find {|resource_summary| resource_summary.resource_type == 'AWS::KMS::Key'}
           .physical_resource_id

@@ -57,7 +57,7 @@ processManagement:
   pidFilePath: #{Storage.run_path.join('mongod.pid')}
 
 replication:
-  replSetName: #{ReplicaSet.name}
+  replSetName: #{ReplicaSet.settings.name}
     EOF
   end
 

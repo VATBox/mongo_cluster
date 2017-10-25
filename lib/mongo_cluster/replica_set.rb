@@ -1,22 +1,19 @@
 require 'active_support/core_ext/class/attribute_accessors'
 require_relative 'shell'
 require_relative 'configuration'
+require_relative 'user'
 require_relative '../aws/instance'
 require_relative '../helpers/json'
 
 module MongoCluster
   module ReplicaSet
 
-    mattr_reader :name do
-      Configuration.fetch(:replication).fetch(:name)
+    mattr_reader :settings do
+      OpenStruct.new(Configuration.fetch(:replication))
     end
 
     mattr_reader :member do
       OpenStruct.new(::Aws::Instance.metadata.fetch(:ReplicaMember))
-    end
-
-    mattr_reader :port do
-      Configuration.fetch(:replication).fetch(:port)
     end
 
     def self.init
@@ -36,7 +33,7 @@ module MongoCluster
     end
 
     def self.reconfig
-      result = Shell.eval("conf = rs.conf(); conf._id = #{name.to_json}; conf.members = #{generate_members.to_json}; rs.reconfig(conf, {force: true})")
+      result = Shell.eval("conf = rs.conf(); conf._id = #{settings.name.to_json}; conf.members = #{generate_members.to_json}; rs.reconfig(conf, {force: true})")
       confirm_result(result)
     end
 
@@ -63,7 +60,7 @@ module MongoCluster
 
     def self.rs_default_initiate
       {
-          _id: name,
+          _id: settings.name,
           members: generate_members
       }
     end

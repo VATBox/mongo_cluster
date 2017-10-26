@@ -18,8 +18,8 @@ module MongoCluster
       create_key_file
     end
 
-    def self.authorization?
-      settings.authorization == 'enabled'
+    def self.allow_anonymous?
+      settings.authorization == 'disabled'
     end
 
     def self.create_key_file

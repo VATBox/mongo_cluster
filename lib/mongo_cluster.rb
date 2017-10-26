@@ -49,8 +49,8 @@ storage:
     enabled: true
 
 security:
-  authorization: #{Security.settings.authorization}
   keyFile: #{Security.settings.keyFile.fetch(:path)}
+  transitionToAuth: #{!Security.allow_anonymous?}
 
 processManagement:
   fork: true

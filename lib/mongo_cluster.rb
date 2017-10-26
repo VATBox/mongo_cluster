@@ -50,7 +50,7 @@ storage:
 
 security:
   authorization: #{Security.settings.authorization}
-  keyFile: #{Security.settings.keyFile}
+  keyFile: #{Security.settings.keyFile.fetch(:path)}
 
 processManagement:
   fork: true

@@ -50,7 +50,7 @@ storage:
 
 security:
   keyFile: #{Security.settings.keyFile.fetch(:path)}
-  transitionToAuth: #{!Security.allow_anonymous?}
+  transitionToAuth: #{Security.allow_anonymous?}
 
 processManagement:
   fork: true

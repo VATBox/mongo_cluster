@@ -73,9 +73,9 @@ module MongoCluster
     end
 
     def self.wait_to_become_primary
-      Timeout::timeout(10) do
+      Timeout::timeout(60) do
         until primary?
-          sleep(1)
+          sleep(5)
         end
       end
     end

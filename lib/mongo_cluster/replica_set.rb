@@ -9,7 +9,9 @@ module MongoCluster
   module ReplicaSet
 
     mattr_reader :settings do
-      OpenStruct.new(Configuration.fetch(:replication))
+      OpenStruct.new(Configuration.fetch(:replication)).tap do |settings|
+        settings.size += 1 if Configuration.backup
+      end
     end
 
     mattr_reader :member do

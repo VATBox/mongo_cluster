@@ -10,7 +10,7 @@ module MongoCluster
 
     mattr_reader :settings do
       OpenStruct.new(Configuration.fetch(:replication)).tap do |settings|
-        settings.size += 1 if Configuration.backup
+        settings.size += 1 if Configuration.fetch(:backup)
       end
     end
 

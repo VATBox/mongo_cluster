@@ -35,7 +35,7 @@ module MongoCluster
           .fetch(:members)
           .find {|member| member.fetch(:self, false)}
           .tap do |member|
-        raise_member_not_sync(member) unless member.fetch(:optimeDate) < 1.minute.ago
+        raise_member_not_sync(member) if member.fetch(:optimeDate) < 1.minute.ago
       end
     end
 

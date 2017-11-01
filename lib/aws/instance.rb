@@ -2,15 +2,24 @@ require 'aws-sdk'
 require 'net/http'
 require 'active_support/core_ext/class/attribute_accessors'
 require_relative 'stack'
-require_relative 'metadata'
 require_relative 'instance/volume'
 require_relative '../helpers/json'
 
 module Aws
   module Instance
 
+    mattr_reader :document do
+      document_uri = URI.parse('http://169.254.169.254/latest/dynamic/instance-identity/document')
+      document = Net::HTTP.get(document_uri)
+      JSON.parse_with_cast(document)
+    end
+
     mattr_reader :id do
-      Metadata.fetch('instance-id')
+      document.fetch(:instanceId)
+    end
+
+    mattr_reader :region do
+      ENV['AWS_REGION'] = document.fetch(:region)
     end
 
     mattr_reader :client do

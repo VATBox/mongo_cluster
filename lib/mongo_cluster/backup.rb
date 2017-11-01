@@ -1,5 +1,5 @@
+require 'active_support/core_ext/class/attribute_accessors'
 require_relative 'configuration'
-require_relative '../aws/instance'
 require_relative 'storage'
 require_relative 'replica_set'
 
@@ -8,8 +8,8 @@ module MongoCluster
 
     mattr_reader :policy do
       OpenStruct.new(Configuration.fetch(:backup)).tap do |policy|
-        policy.snapshot_interval = policy.snapshot_interval.minutes
-        policy.deletion_interval = policy.deletion_interval.days
+        policy.snapshot_interval = policy.snapshot_interval.minutes.to_i
+        policy.deletion_interval = policy.deletion_interval.days.to_i
         policy.retention = policy.retention.days.ago
       end
     end

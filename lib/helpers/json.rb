@@ -22,8 +22,10 @@ module JSON
         Pathname(value)
       when Proc.new {|value| Integer(value) rescue false}
         Integer(value)
-      when Proc.new {|value| DateTime.parse(value) rescue false}
-        DateTime.parse(value)
+      when Proc.new {|value| value.to_s.size > 200}
+        value
+      when Proc.new {|value| DateTime.to_datetime rescue false}
+        value.to_datetime
       else value
     end
   end

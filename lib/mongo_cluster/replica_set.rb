@@ -1,9 +1,7 @@
 require 'active_support/core_ext/class/attribute_accessors'
-require_relative 'shell'
 require_relative 'configuration'
+require_relative 'shell'
 require_relative 'user'
-require_relative 'backup'
-require_relative '../aws/instance'
 require_relative '../helpers/json'
 
 module MongoCluster
@@ -11,7 +9,7 @@ module MongoCluster
 
     mattr_reader :settings do
       OpenStruct.new(Configuration.fetch(:replication)).tap do |settings|
-        settings.size += 1 if Backup.policy.enabled
+        settings.size += 1 if Configuration.fetch(:backup).fetch(:enabled)
       end
     end
 

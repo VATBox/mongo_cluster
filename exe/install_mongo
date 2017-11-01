@@ -1,11 +1,13 @@
 #!/usr/bin/env ruby
-
+require_relative '../lib/aws/sns'
 require_relative '../lib/mongo_cluster'
 require_relative '../lib/control_group'
 require_relative '../lib/munin_node'
 require_relative '../lib/transparent-hugepages'
 
-TransparentHugepages.init
+Aws::Sns.publish_exception do
+  TransparentHugepages.init
 # ControlGroup.init
-MuninNode.init
-MongoCluster.init
+  MuninNode.init
+  MongoCluster.init
+end

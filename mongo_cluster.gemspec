@@ -31,4 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_dependency 'aws-sdk', '~> 2'
   spec.add_dependency 'activesupport', "~> 4.2"
+  spec.add_dependency 'daemons'
+  spec.add_dependency 'mongo'
+  spec.add_dependency 'rufus-scheduler'
 end

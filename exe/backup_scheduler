@@ -1,0 +1,23 @@
+require 'daemons'
+require 'rufus-scheduler'
+require_relative '../lib/mongo_cluster/backup'
+require_relative '../lib/aws/sns'
+
+Daemons.run_proc('backup_scheduler', monitor: true, log_output: true, log_dir: MongoCluster::Backup.log_path) do
+  scheduler = Rufus::Scheduler.new
+
+  scheduler.interval MongoCluster::Backup.policy.snapshot_interval do
+    Aws::Sns.publish_exception do
+      MongoCluster::Backup.member_sync!
+      MongoCluster::Backup.data_volume
+    end
+  end
+
+  scheduler.interval MongoCluster::Backup.policy.deletion_interval do
+    Aws::Sns.publish_exception do
+      MongoCluster::Backup.apply_retention_policy
+    end
+  end
+
+  scheduler.join
+end

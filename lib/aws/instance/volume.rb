@@ -9,7 +9,7 @@ module Aws
 
       def initialize(object)
         @object = object
-        @device = object.attachments.first.device
+        @device = Pathname(object.attachments.first.device)
       end
 
       def tag(name)
@@ -29,17 +29,7 @@ module Aws
       def create_snapshot
         object
             .create_snapshot(description: Time.now.to_formatted_s(:db))
-            .create_tags(snapshot_tag)
-      end
-
-      def snapshot_tag
-        {
-            tags:
-                [
-                    Key: 'Name',
-                    Value: tag('Name')
-                ]
-        }
+            .create_tags(tags: [{key: 'Name', value: tag('Name')}])
       end
 
       def delete_past_retention_snapshots

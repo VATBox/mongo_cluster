@@ -14,7 +14,7 @@ Daemons.run_proc('backup_scheduler', monitor: true, log_output: true, log_dir: M
     end
   end
 
-  scheduler.interval MongoCluster::Backup.policy.deletion_interval do
+  scheduler.interval 1.day.to_i, first_at: 1.day.from_now.at_midnight do
     Aws::Sns.publish_exception do
       MongoCluster::Backup.apply_retention_policy
     end

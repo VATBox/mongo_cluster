@@ -2,16 +2,21 @@ require 'active_support/core_ext/class/attribute_accessors'
 require_relative 'configuration'
 require_relative 'storage'
 require_relative 'replica_set'
+require_relative '../helpers/service'
 
 module MongoCluster
   module Backup
+    extend Service
 
     mattr_reader :policy do
       OpenStruct.new(Configuration.fetch(:backup)).tap do |policy|
         policy.snapshot_interval = policy.snapshot_interval.minutes.to_i
-        policy.deletion_interval = policy.deletion_interval.days.to_i
         policy.retention = policy.retention.days.ago
       end
+    end
+
+    mattr_reader :service_name do
+      'backup_scheduler'
     end
 
     mattr_reader :log_path do
@@ -19,6 +24,13 @@ module MongoCluster
           .mounts
           .log
           .path
+    end
+
+    def self.init
+      append_chkconfig
+      link_daemon_to_init_d
+      chkconfig_add
+      start
     end
 
     def self.data_volume
@@ -40,6 +52,28 @@ module MongoCluster
     end
 
     private
+
+    def self.link_daemon_to_init_d
+      FileUtils.ln_s(daemon_path, '/etc/init.d/', force: true)
+    end
+
+    def self.append_chkconfig
+      daemon_path
+          .readlines
+          .each(&:chomp!)
+          .delete_if {|line| line =~ /chkconfig/}
+          .tap {|lines| lines.first.concat(chkconfig_parameters)}
+          .join("\n")
+          .tap {|daemon_string| File.write(daemon_path, daemon_string)}
+    end
+
+    def self.daemon_path
+      Pathname('/usr/local/bin').join(service_name)
+    end
+
+    def self.chkconfig_parameters
+      "\n# chkconfig: 2345 20 80"
+    end
 
     def self.find_data_volume
       ::Aws::Instance

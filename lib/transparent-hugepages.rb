@@ -15,12 +15,14 @@ module TransparentHugepages
   def self.init
     set_disable
     chkconfig_add
+    start
   end
 
   private
 
   def self.set_disable
     File.write(conf_path, disable_script)
+    FileUtils.chmod(0755, conf_path)
   end
 
   def self.disable_script

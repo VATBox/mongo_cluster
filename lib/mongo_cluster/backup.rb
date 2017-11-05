@@ -38,7 +38,7 @@ module MongoCluster
     end
 
     def self.apply_retention_policy
-      find_data_volume.delete_past_retention_snapshots
+      find_data_volume.cleanup_snapshots(policy.retention)
     end
 
     def self.member_sync!

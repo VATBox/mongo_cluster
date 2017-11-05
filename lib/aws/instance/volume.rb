@@ -24,6 +24,10 @@ module Aws
         create_snapshot
       end
 
+      def cleanup_snapshots(retention)
+        delete_past_retention_snapshots(retention)
+      end
+
       private
 
       def create_snapshot
@@ -32,20 +36,11 @@ module Aws
             .create_tags(tags: [{key: 'Name', value: tag('Name')}])
       end
 
-      def delete_past_retention_snapshots
-        retention = self.retention
+      def delete_past_retention_snapshots(retention)
         object
             .snapshots
             .select {|snapshot| snapshot.start_time < retention}
             .each(&:delete)
-      end
-
-      def retention
-        MongoCluser::Configuration
-            .fetch(:backup)
-            .fetch(:retention)
-            .days
-            .ago
       end
 
     end

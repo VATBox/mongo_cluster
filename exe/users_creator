@@ -17,8 +17,8 @@ Daemons.run_proc('users_creator', monitor: true, log_output: true, log_dir: '/tm
   id = 0
 
   scheduler.interval '1s' do
-    id += 1
     users.insert_one(id: id, timestamp: Time.now.to_formatted_s(:db))
+    id += 1
   end
 
   scheduler.join

@@ -2,18 +2,12 @@ require 'active_support/core_ext/class/attribute_accessors'
 require_relative 'configuration'
 require_relative 'storage'
 require_relative 'replica_set'
+require_relative 'backup/policy'
 require_relative '../helpers/service'
 
 module MongoCluster
   module Backup
     extend Service
-
-    mattr_reader :policy do
-      OpenStruct.new(Configuration.fetch(:backup)).tap do |policy|
-        policy.snapshot_interval = policy.snapshot_interval.minutes.to_i
-        policy.retention = policy.retention.days.ago
-      end
-    end
 
     mattr_reader :service_name do
       'backup_scheduler'
@@ -38,7 +32,12 @@ module MongoCluster
     end
 
     def self.apply_retention_policy
-      find_data_volume.cleanup_snapshots(policy.retention)
+      find_data_volume
+          .snapshots
+          .sort_by(&:start_time)
+          .tap(&Policy.method(:keep_minutely_snapshots))
+          .tap(&Policy.method(:keep_retention_snapshots))
+          .each(&:delete)
     end
 
     def self.member_sync!

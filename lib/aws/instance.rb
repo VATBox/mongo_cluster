@@ -1,4 +1,4 @@
-require 'aws-sdk'
+require 'aws-sdk-ec2'
 require 'net/http'
 require 'active_support/core_ext/class/attribute_accessors'
 require_relative 'stack'
@@ -31,7 +31,13 @@ module Aws
     end
 
     mattr_reader :tags do
-      Hash[client.tags.map(&:to_a)]
+      Hash[client.tags.map(&:entries)]
+    end
+
+    def self.all
+      all_resources
+          .map(&:physical_resource_id)
+          .map!(&Aws::EC2::Instance.method(:new))
     end
 
     def self.metadata

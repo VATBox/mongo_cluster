@@ -57,6 +57,33 @@ module MongoCluster
       JSON.parse_with_cast(is_master)
     end
 
+    def self.primary_step_down(duration)
+      primary_host.split(':').tap do |host, port|
+        begin
+          result = Shell.eval("rs.stepDown(#{duration})", host: host, port: port)
+          confirm_result(result)
+        rescue => exception
+          raise exception unless exception.message.match("network error while attempting to run command 'replSetStepDown' on host '#{host}:#{port}'")
+        end
+      end
+    end
+
+    def self.primary_instance
+      primary_host
+          .split(':')
+          .first
+          .tap do |primary_ip|
+        return Aws::Instance.all.find {|instance| instance.private_ip_address == primary_ip}
+      end
+    end
+
+    def self.primary_host
+      status
+          .fetch(:members)
+          .find {|member| member.fetch(:state) == 1}
+          .fetch(:name)
+    end
+
     private
 
     def self.rs_default_initiate

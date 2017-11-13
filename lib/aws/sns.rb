@@ -1,4 +1,4 @@
-require 'aws-sdk'
+require 'aws-sdk-sns'
 require_relative 'stack'
 
 module Aws

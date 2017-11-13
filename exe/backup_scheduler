@@ -4,17 +4,17 @@ require 'rufus-scheduler'
 require_relative '../lib/mongo_cluster/backup'
 require_relative '../lib/aws/sns'
 
-Daemons.run_proc('backup_scheduler', monitor: true, log_output: true, log_dir: MongoCluster::Backup.log_path) do
+Daemons.run_proc('backup_scheduler', dir_mode: :system, monitor: true, log_output: true, log_dir: MongoCluster::Backup.log_path) do
   scheduler = Rufus::Scheduler.new
 
-  scheduler.interval MongoCluster::Backup.policy.snapshot_interval do
+  scheduler.interval MongoCluster::Backup::Policy.snapshot_interval do
     Aws::Sns.publish_exception do
       MongoCluster::Backup.member_sync!
       MongoCluster::Backup.data_volume
     end
   end
 
-  scheduler.interval 1.day.to_i, first_at: 1.day.from_now.at_midnight do
+  scheduler.interval 1.day.to_i, first_at: Time.now.end_of_day do
     Aws::Sns.publish_exception do
       MongoCluster::Backup.apply_retention_policy
     end

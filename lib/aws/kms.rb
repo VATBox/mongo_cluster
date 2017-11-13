@@ -1,4 +1,4 @@
-require 'aws-sdk'
+require 'aws-sdk-kms'
 require 'active_support/core_ext/class/attribute_accessors'
 require_relative 'stack'
 

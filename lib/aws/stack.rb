@@ -1,4 +1,4 @@
-require 'aws-sdk'
+require 'aws-sdk-cloudformation'
 require 'active_support/core_ext/class/attribute_accessors'
 require_relative 'instance'
 require_relative '../helpers/aws_cloudformation_stack_resource'

@@ -3,10 +3,17 @@ PATH
   specs:
     mongo_cluster (0.0.1)
       activesupport (~> 4.2)
-      aws-sdk (~> 2)
+      aws-sdk-cloudformation
+      aws-sdk-ec2
+      aws-sdk-glacier
+      aws-sdk-kms
+      aws-sdk-s3
+      aws-sdk-sns
       daemons
       mongo
+      parallel
       rufus-scheduler
+      treehash
 
 GEM
   remote: https://rubygems.org/
@@ -16,13 +23,30 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
-    aws-sdk (2.10.74)
-      aws-sdk-resources (= 2.10.74)
-    aws-sdk-core (2.10.74)
+    aws-partitions (1.34.0)
+    aws-sdk-cloudformation (1.2.0)
+      aws-sdk-core (~> 3)
+      aws-sigv4 (~> 1.0)
+    aws-sdk-core (3.7.0)
+      aws-partitions (~> 1.0)
       aws-sigv4 (~> 1.0)
       jmespath (~> 1.0)
-    aws-sdk-resources (2.10.74)
-      aws-sdk-core (= 2.10.74)
+    aws-sdk-ec2 (1.17.0)
+      aws-sdk-core (~> 3)
+      aws-sigv4 (~> 1.0)
+    aws-sdk-glacier (1.4.0)
+      aws-sdk-core (~> 3)
+      aws-sigv4 (~> 1.0)
+    aws-sdk-kms (1.3.0)
+      aws-sdk-core (~> 3)
+      aws-sigv4 (~> 1.0)
+    aws-sdk-s3 (1.6.0)
+      aws-sdk-core (~> 3)
+      aws-sdk-kms (~> 1)
+      aws-sigv4 (~> 1.0)
+    aws-sdk-sns (1.1.0)
+      aws-sdk-core (~> 3)
+      aws-sigv4 (~> 1.0)
     aws-sigv4 (1.0.2)
     bson (4.2.2)
     concurrent-ruby (1.0.5)
@@ -30,12 +54,13 @@ GEM
     diff-lcs (1.3)
     et-orbi (1.0.8)
       tzinfo
-    i18n (0.9.0)
+    i18n (0.9.1)
       concurrent-ruby (~> 1.0)
     jmespath (1.3.1)
     minitest (5.10.3)
     mongo (2.4.3)
       bson (>= 4.2.1, < 5.0.0)
+    parallel (1.12.0)
     rake (10.5.0)
     rspec (3.7.0)
       rspec-core (~> 3.7.0)
@@ -53,6 +78,7 @@ GEM
     rufus-scheduler (3.4.2)
       et-orbi (~> 1.0)
     thread_safe (0.3.6)
+    treehash (0.0.2)
     tzinfo (1.2.4)
       thread_safe (~> 0.1)
 

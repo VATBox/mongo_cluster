@@ -2,23 +2,56 @@
 require 'daemons'
 require 'rufus-scheduler'
 require 'mongo'
+require_relative '../lib/aws/sns'
+require_relative '../lib/helpers/user_record'
 require_relative '../lib/mongo_cluster/replica_set'
 
-Daemons.run_proc('users_creator', monitor: true, log_output: true, log_dir: '/tmp') do
+Daemons.run_proc('users_creator', monitor: true, dir_mode: :system, log_output: true, log_dir: '/tmp') do
   scheduler = Rufus::Scheduler.new
   replica_members =
       MongoCluster::ReplicaSet
-      .conf
-      .fetch(:members)
-      .map {|member| member.fetch(:host)}
+          .conf
+          .fetch(:members)
+          .map {|member| member.fetch(:host)}
   client = Mongo::Client.new(replica_members, database: 'vatbox')
-  users = client['users']
-  users.drop
-  id = 0
+  client['users'].drop
+  user_record = UserRecord.new
 
   scheduler.interval '1s' do
-    users.insert_one(id: id, timestamp: Time.now.to_formatted_s(:db))
-    id += 1
+    client['users'].insert_one(user_record.one)
+  end
+
+  scheduler.interval '30m', first_at: DateTime.now + 10.minutes do
+    begin
+      MongoCluster::ReplicaSet.primary_step_down(240)
+      sleep 30
+      primary_instance = MongoCluster::ReplicaSet.primary_instance
+      primary_instance.stop
+      sleep 60
+    ensure
+      primary_instance.start
+      primary_instance.wait_until_running
+    end
+  end
+
+  scheduler.interval '30m', first_at: DateTime.now + 20.minutes do
+    begin
+      primary_instance = MongoCluster::ReplicaSet.primary_instance
+      primary_instance.stop
+      sleep 30
+      MongoCluster::ReplicaSet.primary_step_down(240)
+      sleep 60
+    ensure
+      primary_instance.start
+      primary_instance.wait_until_running
+    end
+  end
+
+  scheduler.interval '30m', first_at: DateTime.now + 30.minutes do
+    ids = client['users'].distinct(:id).sort
+    range = Range.new(*ids.minmax)
+    missing_ids = range.to_a - ids
+    Aws::Sns.publish("Missing IDS: #{missing_ids}") unless missing_ids.empty?
   end
 
   scheduler.join

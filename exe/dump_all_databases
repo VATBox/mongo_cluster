@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+require 'parallel'
+require_relative '../lib/mongo_cluster'
+require_relative '../lib/mongo_cluster/dump'
+require_relative '../lib/aws/sns'
+
+class Databases
+
+  attr_reader :names
+
+  def initialize
+    @names = Queue.new
+    MongoCluster
+        .databases
+        .sort_by {|database| database[:sizeOnDisk]}
+        .each {|database| names.push(database.fetch(:name))}
+  end
+
+  def next_name
+    names.shift unless names.empty?
+  end
+
+end
+
+databases = Databases.new
+Parallel.each( -> {databases.next_name || Parallel::Stop}, in_threads: 3) do |database_name|
+  puts database_name
+  Aws::Sns.publish_exception(skip: true) do
+    MongoCluster::Dump.to_file(database_name: database_name)
+  end
+end
+Aws::Sns.publish('dump done')

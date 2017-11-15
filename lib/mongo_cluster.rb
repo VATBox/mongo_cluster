@@ -23,6 +23,11 @@ module MongoCluster
     chkconfig_on
   end
 
+  def self.databases
+    databases = Shell.eval('db.adminCommand({listDatabases: 1}).databases')
+    JSON.parse_with_cast(databases)
+  end
+
   def self.read_conf
     YAML.load_file(conf_path)
   end
@@ -44,6 +49,7 @@ systemLog:
   path: #{Storage.mounts.log.path.join('mongod.log')}
 
 storage:
+  directoryPerDB: true
   dbPath: #{Storage.mounts.data.path}
   journal:
     enabled: true

@@ -20,11 +20,11 @@ module Aws
       object.publish(message: message)
     end
 
-    def self.publish_exception
+    def self.publish_exception(skip: false)
       yield
     rescue => exception
       publish(generate_exception_message(exception))
-      raise exception
+      raise exception unless skip
     end
 
     private

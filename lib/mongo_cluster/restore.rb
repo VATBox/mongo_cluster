@@ -1,6 +1,7 @@
 require_relative 'shell'
 require_relative '../aws/stack'
 require_relative '../aws/s3'
+require_relative '../aws/efs'
 require_relative 'storage'
 
 module MongoCluster
@@ -8,8 +9,7 @@ module MongoCluster
     extend ExternalExecutable
 
     mattr_reader :path do
-      #todo Add EFS path
-      Pathname('/dump')
+      Aws::Efs.path
     end
 
     def self.from_file(host: 'localhost', port: ReplicaSet.settings.port, database_name: nil)
@@ -22,14 +22,14 @@ module MongoCluster
     private
 
     def self.file_path(database_name)
-      file_name = database_name || 'dump'
+      file_name = database_name || 'dump_all'
       path
           .join(file_name)
           .sub_ext('.gz')
     end
 
     def self.log_file(database_name)
-      file_name = database_name || 'dump'
+      file_name = database_name || 'dump_all'
       Storage
           .mounts
           .log

@@ -2,6 +2,7 @@ require 'fileutils'
 require 'active_support/core_ext/class/attribute_accessors'
 require_relative 'configuration'
 require_relative '../aws/kms'
+require_relative '../aws/efs'
 require_relative '../helpers/external_executable'
 
 module MongoCluster
@@ -116,6 +117,7 @@ module MongoCluster
           .each(&:chomp!)
           .delete_if {|line| line.match(devices_regexp)}
           .push(mounts_string)
+          .push(Aws::Efs.mount_string)
           .join("\n")
           .tap {|fstab_string| File.write(fstab_path, fstab_string)}
     end

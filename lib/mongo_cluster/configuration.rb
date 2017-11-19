@@ -1,4 +1,4 @@
-require_relative '../aws/stack'
+require_relative '../aws/instance'
 
 module MongoCluster
 

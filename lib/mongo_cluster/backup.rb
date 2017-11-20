@@ -3,6 +3,7 @@ require_relative 'configuration'
 require_relative 'storage'
 require_relative 'replica_set'
 require_relative 'backup/policy'
+require_relative '../data_dog'
 require_relative '../helpers/service'
 
 module MongoCluster
@@ -24,6 +25,7 @@ module MongoCluster
       append_chkconfig
       link_daemon_to_init_d
       chkconfig_add
+      set_data_dog_conf if DataDog.enabled?
       start
     end
 
@@ -78,6 +80,23 @@ module MongoCluster
       ::Aws::Instance
           .volumes
           .find{ |volume| volume.device == Storage.mounts.data.device}
+    end
+
+    def self.set_data_dog_conf
+      DataDog
+          .conf_path
+          .dirname
+          .join('conf.d/process.yaml')
+          .tap {|process_conf| File.write(process_conf, generate_data_dog_conf)}
+    end
+
+    def self.generate_data_dog_conf
+      <<-EOF
+init_config:
+instances:
+  - name: #{service_name}
+    pid_file: /var/run/#{service_name}.pid
+      EOF
     end
 
     def self.raise_member_not_sync(member)

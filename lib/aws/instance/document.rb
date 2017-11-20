@@ -14,7 +14,7 @@ module Aws
         JSON
             .parse_with_cast(Net::HTTP.get(uri))
             .transform_keys!(&:underscore)
-            .tap {|document| ENV['AWS::REGION'] = document.fetch(:region)}
+            .tap {|document| ENV['AWS_REGION'] = document.fetch(:region)}
       end
 
       def self.fetch(key)

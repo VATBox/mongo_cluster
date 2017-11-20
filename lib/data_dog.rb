@@ -27,11 +27,23 @@ module DataDog
     Datadog::Statsd.new('localhost', 8125)
   end
 
+  def self.enabled?
+    !api_key.blank?
+  end
+
   def self.init
+    return unless enabled?
     set_conf
     set_mongo_conf
     chkconfig_on
     restart
+  end
+
+  def event_exception(skip: false)
+    yield
+  rescue => exception
+    statsd.event(exception.message, exception.backtrace, alert_type: 'error')
+    raise exception unless skip
   end
 
   private

@@ -61,6 +61,7 @@ module MongoCluster
 
     def self.mount_paths
       paths.each(&method(:mount))
+      Aws::Efs.path.tap(&method(:mount))
     end
 
     def self.mount(path)
@@ -97,6 +98,7 @@ module MongoCluster
 
     def self.create_mounts_paths
       paths.each(&:mkpath)
+      Aws::Efs.path.tap(&:mkpath)
     end
 
     def self.chown_paths

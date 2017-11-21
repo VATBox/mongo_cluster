@@ -21,7 +21,7 @@ module Aws
     end
 
     mattr_reader :path do
-      Pathname('/efs').tap(&:mkpath)
+      Pathname('/efs')
     end
 
     def self.mount_string

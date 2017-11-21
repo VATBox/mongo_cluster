@@ -1,7 +1,4 @@
 #!/usr/bin/env ruby
-require_relative '../lib/aws/sns'
 require_relative '../lib/data_dog'
 
-Aws::Sns.publish_exception do
-  DataDog.init
-end
+DataDog.init

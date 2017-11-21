@@ -8,7 +8,9 @@ module Aws
   module Glacier
 
     mattr_reader :account_id do
-      Instance::Document.fetch(:account_id)
+      Instance::Document
+          .fetch(:account_id)
+          .to_s
     end
 
     mattr_reader :object do

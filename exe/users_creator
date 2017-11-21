@@ -2,7 +2,6 @@
 require 'daemons'
 require 'rufus-scheduler'
 require 'mongo'
-require_relative '../lib/aws/sns'
 require_relative '../lib/helpers/user_record'
 require_relative '../lib/mongo_cluster/replica_set'
 
@@ -45,13 +44,6 @@ Daemons.run_proc('users_creator', monitor: true, dir_mode: :system, log_output: 
       primary_instance.start
       primary_instance.wait_until_running
     end
-  end
-
-  scheduler.interval '30m', first_at: DateTime.now + 30.minutes do
-    ids = client['users'].distinct(:id).sort
-    range = Range.new(*ids.minmax)
-    missing_ids = range.to_a - ids
-    Aws::Sns.publish("Missing IDS: #{missing_ids}") unless missing_ids.empty?
   end
 
   scheduler.join

@@ -2,7 +2,6 @@
 require 'daemons'
 require 'rufus-scheduler'
 require_relative '../lib/mongo_cluster/backup'
-require_relative '../lib/aws/sns'
 require_relative '../lib/data_dog'
 
 Daemons.run_proc('backup_scheduler', dir_mode: :system, monitor: true, log_output: true, log_dir: MongoCluster::Backup.log_path) do
@@ -12,16 +11,14 @@ Daemons.run_proc('backup_scheduler', dir_mode: :system, monitor: true, log_outpu
     DataDog.event_exception do
       MongoCluster::Backup.member_sync!
       MongoCluster::Backup.data_volume
-      DataDog.statsd.increment('backup.snapshots')
+      DataDog.statsd.histogram('backup.snapshots', MongoCluster::Backup.snapshots_count)
     end
   end
 
   scheduler.interval 1.day.to_i, first_at: Time.now.end_of_day do
     DataDog.event_exception do
-      MongoCluster::Backup
-          .apply_retention_policy
-          .count
-          .times {DataDog.statsd.decrement('backup.snapshots')}
+      MongoCluster::Backup.apply_retention_policy
+      DataDog.statsd.histogram('backup.snapshots', MongoCluster::Backup.snapshots_count)
     end
   end
 

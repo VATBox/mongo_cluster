@@ -1,8 +1,5 @@
 #!/usr/bin/env ruby
 require_relative '../lib/mongo_cluster/replica_set'
-require_relative '../lib/aws/sns'
 
-Aws::Sns.publish_exception do
-  Aws::Instance.wait_for_all_to_complete(MongoCluster::ReplicaSet.settings.size)
-  MongoCluster::ReplicaSet.init
-end
+Aws::Instance.wait_for_all_to_complete(MongoCluster::ReplicaSet.settings.size)
+MongoCluster::ReplicaSet.init

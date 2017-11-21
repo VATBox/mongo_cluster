@@ -1,4 +1,4 @@
-require 'rubygems/package/tar_writer'
+require 'rubygems/package'
 require 'active_support/core_ext/module/delegation'
 require 'active_support/core_ext/class/attribute_accessors'
 require_relative '../../aws/efs'

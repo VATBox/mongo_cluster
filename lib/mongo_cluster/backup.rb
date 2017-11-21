@@ -52,6 +52,12 @@ module MongoCluster
       end
     end
 
+    def self.snapshots_count
+      find_data_volume
+          .snapshots
+          .count
+    end
+
     private
 
     def self.link_daemon_to_init_d

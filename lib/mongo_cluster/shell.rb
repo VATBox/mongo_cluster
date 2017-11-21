@@ -8,7 +8,7 @@ module MongoCluster
 
     def self.eval(cmd, host: 'localhost', port: ReplicaSet.settings.port)
       shell_command = generate_shell_command(host, port, cmd)
-      concat_login_flags(shell_command) if login?
+      concat_login_flags(shell_command) unless Security.allow_anonymous?
       run(shell_command)
     end
 

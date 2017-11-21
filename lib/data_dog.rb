@@ -42,7 +42,7 @@ module DataDog
   def self.event_exception(skip: false)
     yield
   rescue => exception
-    statsd.event(exception.message, exception.backtrace, alert_type: 'error')
+    statsd.event(exception.message, exception.backtrace.join("\n"), alert_type: 'error')
     raise exception unless skip
   end
 

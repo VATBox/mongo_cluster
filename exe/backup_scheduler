@@ -2,6 +2,7 @@
 require 'daemons'
 require 'rufus-scheduler'
 require_relative '../lib/mongo_cluster/backup'
+require_relative '../lib/mongo_cluster/dump'
 require_relative '../lib/data_dog'
 
 Daemons.run_proc('backup_scheduler', dir_mode: :system, monitor: true, log_output: true, log_dir: MongoCluster::Backup.log_path) do

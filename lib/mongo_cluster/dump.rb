@@ -24,13 +24,13 @@ module MongoCluster
     def self.to_s3(host: 'localhost', port: ReplicaSet.settings.port, database_name: nil)
       to_tar(host: host, port: port, database_name: database_name)
       Aws::S3.upload!(Files.tar_path)
-      Files.path.rmtree
+      Files.clear
     end
 
     def self.to_glacier(host: 'localhost', port: ReplicaSet.settings.port, database_name: nil)
       to_tar(host: host, port: port, database_name: database_name)
       Aws::Glacier.upload_archive(Files.tar_path)
-      Files.path.rmtree
+      Files.clear
     end
 
     private

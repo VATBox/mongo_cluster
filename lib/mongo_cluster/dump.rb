@@ -9,7 +9,8 @@ module MongoCluster
     extend ExternalExecutable
 
     def self.to_efs(host: 'localhost', port: ReplicaSet.settings.port, database_name: nil)
-      shell_command = generate_shell_command(host, port, Files.path.tap(&:rmtree).tap(&:mkpath))
+      Files.clear
+      shell_command = generate_shell_command(host, port, Files.path)
       database_name ? concat_database_flag(shell_command, database_name) : concat_oplog_flag(shell_command)
       Shell.concat_login_flags(shell_command) if Shell.login?
       run(shell_command, log_file: Files.path.join('dump.log'))

@@ -11,7 +11,6 @@ module MongoCluster
         Aws::Efs
             .path
             .join('dump')
-            .tap(&:mkpath)
       end
 
       cattr_accessor :tar_path do
@@ -33,11 +32,18 @@ module MongoCluster
       def self.to_tar
         files = self.new
         Gem::Package::TarWriter.new(tar_path.open('w')) do |tar|
-          files.directories_names.each {|directory_name| tar.mkdir(directory_name, 33188)}
+          files
+              .directories_names
+              .each {|directory_name| tar.mkdir(directory_name, 33188)}
           while(file = files.next_file) do
             tar.add_file(file.relative_path_from(path).to_s, file.stat.mode) {|tar_file| tar_file.write file.read}
           end
         end
+      end
+
+      def self.clear
+        path.rmtree if path.exist?
+        path.mkpath
       end
 
       def directories_names

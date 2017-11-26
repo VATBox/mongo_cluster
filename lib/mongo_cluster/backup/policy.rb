@@ -14,7 +14,7 @@ module MongoCluster
       end
 
       def self.keep_minutely_snapshots(snapshots)
-        minutely_expiration = retention_expiration.minutely.days.ago.end_of_day
+        minutely_expiration = self.minutely_expiration
         snapshots.delete_if {|snapshot| snapshot.start_time > minutely_expiration}
       end
 
@@ -33,16 +33,37 @@ module MongoCluster
 
       private
 
+      def self.minutely_expiration
+        retention_expiration
+            .minutely
+            .days
+            .ago
+      end
+
+      def self.hourly_expiration
+        retention_expiration
+            .hourly
+            .days
+            .ago
+      end
+
+      def self.daily_expiration
+        retention_expiration
+            .daily
+            .days
+            .ago
+      end
+
       def self.hourly_retention_dates
         Range
-            .new(retention_expiration.hourly.days.ago.end_of_day.to_i, retention_expiration.minutely.days.ago.end_of_day.to_i)
+            .new(hourly_expiration.to_i, minutely_expiration.to_i)
             .step(1.hour)
             .map(&Time.method(:at))
       end
 
       def self.daily_retention_dates
         Range
-            .new(retention_expiration.daily.days.ago.end_of_day.to_i, retention_expiration.hourly.days.ago.end_of_day.to_i)
+            .new(daily_expiration.to_i, hourly_expiration.to_i)
             .step(1.day)
             .map(&Time.method(:at))
       end

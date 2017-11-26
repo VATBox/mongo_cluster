@@ -2,14 +2,21 @@
 class UserRecord
 
   attr_reader :id
+  attr_reader :queue
 
   def initialize
     @id = 0
+    @queue = Queue.new
+    queue.push(1)
   end
 
-  def one
+  def next
+    one(next_id)
+  end
+
+  def one(id = @id += 1)
     {
-        id: @id += 1,
+        id: id,
         timestamp: Time.now.to_formatted_s(:db),
         first_name: first_name,
         last_name: last_name,
@@ -30,6 +37,12 @@ class UserRecord
   end
 
   private
+
+  def next_id
+    queue
+        .shift
+        .tap {|id| queue.push(id + 1)}
+  end
 
   def first_name
     ["Kevin", "Mitch", "Tyler", "Jay", "Erik", "Chad", "Philup", "Jane", "Jill", "Luke"].sample

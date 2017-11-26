@@ -1,0 +1,62 @@
+#!/usr/bin/env ruby
+require 'daemons'
+require 'rufus-scheduler'
+require 'mongo'
+require 'parallel'
+require_relative '../lib/helpers/user_record'
+require_relative '../lib/mongo_cluster/replica_set'
+
+class MongoClients
+
+  attr_reader :queue
+
+  def initialize(amount)
+    @queue = Queue.new
+    replica_members =
+        MongoCluster::ReplicaSet
+            .conf
+            .fetch(:members)
+            .map {|member| member.fetch(:host)}
+    amount.times do
+      client = Mongo::Client.new(replica_members, database: 'vatbox')['users']
+      queue.push(client)
+    end
+  end
+
+  def next
+    queue
+        .shift
+        .tap {|client| queue.push(client)}
+  end
+
+end
+
+Daemons.run_proc('stress_load', monitor: true, dir_mode: :system, log_output: true, log_dir: '/tmp') do
+  scheduler = Rufus::Scheduler.new(max_work_threads: 200)
+  threads = 150
+  user_record = UserRecord.new
+  mongo_clients = MongoClients.new(threads)
+  mongo_clients.next['users'].drop
+  missing_ids = []
+
+  threads.times do
+
+    scheduler.interval 1.second.to_i do
+      begin
+        user = user_record.next
+        mongo_clients
+            .next
+            .insert_one(user)
+      rescue => exception
+        missing_ids.push(user[:id])
+      end
+    end
+
+  end
+
+  scheduler.interval 30.minutes.to_i do
+    DataDog.statsd.event('Missing Ids', missing_ids.to_json, alert_type: 'error') unless missing_ids.empty?
+  end
+
+  scheduler.join
+end

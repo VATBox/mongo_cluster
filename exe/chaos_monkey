@@ -1,0 +1,107 @@
+#!/usr/bin/env ruby
+require 'daemons'
+require 'rufus-scheduler'
+require 'mongo'
+require 'net/ssh'
+require 'active_support/core_ext/module/delegation'
+require_relative '../lib/helpers/user_record'
+require_relative '../lib/mongo_cluster/replica_set'
+
+class Instances
+
+  attr_reader :queue
+
+  def initialize
+    @queue = Queue.new
+    Aws::Instance
+        .all
+        .delete_if {|instance| instance.id == ::Aws::Instance::Document.fetch(:instance_id)}
+        .each {|instance| queue.push(instance)}
+  end
+
+  def stop_primary(duration = 1.minute, &block)
+    stop!(duration, primary, &block)
+  end
+
+  def stop_primary_service(duration = 1.minute)
+    stop_service!(duration, primary)
+  end
+
+  def reboot_primary
+    reboot!(primary)
+  end
+
+  def stop_service!(duration, instance = random)
+    Net::SSH.start(instance.private_ip_address, 'ec2-user', keys: '/tmp/mongo_cluster.pem') do
+      begin
+        puts ssh.exec!('sudo service mongod stop')
+        sleep duration
+      ensure
+        puts ssh.exec!('sudo service mongod restart')
+      end
+    end
+  end
+
+  def stop!(duration, instance = random)
+    instance.stop
+    instance.wait_until_stopped
+    yield
+    sleep duration
+  ensure
+    instance.start
+    instance.wait_until_running
+  end
+
+  def reboot!(instance = random)
+    instance.reboot
+  end
+
+  private
+
+  def random
+    queue
+        .shift
+        .tap {|instance| queue.push(instance)}
+  end
+
+  def primary
+    MongoCluster::ReplicaSet.primary_instance
+  end
+
+end
+
+Daemons.run_proc('chaos_monkey', monitor: true, dir_mode: :system, log_output: true, log_dir: '/tmp') do
+  scheduler = Rufus::Scheduler.new
+  instances = Instances.new
+
+  scheduler.interval 10.minutes.to_i, first_at: DateTime.now.since((7.5).minutes) do
+    instances.reboot!
+  end
+
+  scheduler.interval 15.minutes.to_i, first_at: DateTime.now.since(15.minutes) do
+    instances.stop_service!(5.minutes)
+  end
+
+  scheduler.interval 20.minutes, first_at: DateTime.now.since((22.5).minutes) do
+    instances.stop!(5.minutes)
+  end
+
+  scheduler.interval 25.minutes.to_i, first_at: DateTime.now.since((30).minutes) do
+    MongoCluster::ReplicaSet.primary_step_down(5.minute)
+  end
+
+  # scheduler.interval 30.minutes, first_at: DateTime.now + 10.minutes do
+  #   MongoCluster::ReplicaSet.primary_step_down(5.minute)
+  #   sleep 1.minute
+  #   instances.stop_primary(5.minute)
+  # end
+  #
+  # scheduler.interval 30.minutes, first_at: DateTime.now + 20.minutes do
+  #   instances.stop_primary(5.minute) do
+  #     sleep 1.minute
+  #     MongoCluster::ReplicaSet.primary_step_down(5.minute)
+  #   end
+  # end
+
+  scheduler.join
+end

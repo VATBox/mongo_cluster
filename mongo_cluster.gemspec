@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
-  spec.add_dependency 'activesupport', "~> 4.2"
+  spec.add_dependency 'activesupport'
   spec.add_dependency 'aws-sdk-ec2'
   spec.add_dependency 'aws-sdk-kms'
   spec.add_dependency 'aws-sdk-glacier'
@@ -40,6 +40,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'daemons'
   spec.add_dependency 'dogstatsd-ruby'
   spec.add_dependency 'mongo'
+  spec.add_dependency 'net-ssh'
   spec.add_dependency 'rufus-scheduler'
   spec.add_dependency 'parallel'
   spec.add_dependency 'treehash'

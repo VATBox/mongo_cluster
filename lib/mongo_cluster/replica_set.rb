@@ -18,15 +18,14 @@ module MongoCluster
     end
 
     def self.init
-      initiate
+      case status.fetch(:codeName, :no_code)
+        when 'NotYetInitialized' then initiate
+        when 'InvalidReplicaSetConfig', :no_code then reconfig
+        else raise $1
+      end
       wait_to_become_primary
-    rescue Exception => exception
-      raise exception unless exception.message == 'AlreadyInitialized'
-      reconfig
-    ensure
       User.create_root unless Shell.login?
       User.create_data_dog
-      status
     end
 
     def self.initiate

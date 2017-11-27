@@ -36,7 +36,7 @@ Daemons.run_proc('stress_load', monitor: true, dir_mode: :system, log_output: tr
   threads = 150
   user_record = UserRecord.new
   mongo_clients = MongoClients.new(threads)
-  mongo_clients.next['users'].drop
+  mongo_clients.next.drop
   missing_ids = []
 
   threads.times do

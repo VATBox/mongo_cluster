@@ -32,7 +32,7 @@ class Instances
   end
 
   def stop_service!(duration, instance = random)
-    Net::SSH.start(instance.private_ip_address, 'ec2-user', keys: '/tmp/mongo_cluster.pem') do
+    Net::SSH.start(instance.private_ip_address, 'ec2-user', keys: '/tmp/mongo_cluster.pem') do |ssh|
       begin
         puts ssh.exec!('sudo service mongod stop')
         sleep duration
@@ -45,7 +45,7 @@ class Instances
   def stop!(duration, instance = random)
     instance.stop
     instance.wait_until_stopped
-    yield
+    yield if block_given?
     sleep duration
   ensure
     instance.start
@@ -74,19 +74,19 @@ Daemons.run_proc('chaos_monkey', monitor: true, dir_mode: :system, log_output: t
   scheduler = Rufus::Scheduler.new
   instances = Instances.new
 
-  scheduler.interval 10.minutes.to_i, first_at: DateTime.now.since((7.5).minutes) do
+  scheduler.interval 10.minutes.to_i do
     instances.reboot!
   end
 
-  scheduler.interval 15.minutes.to_i, first_at: DateTime.now.since(15.minutes) do
+  scheduler.interval 15.minutes.to_i, first_at: DateTime.now.since((7.5).minutes) do
     instances.stop_service!(5.minutes)
   end
 
-  scheduler.interval 20.minutes, first_at: DateTime.now.since((22.5).minutes) do
+  scheduler.interval 20.minutes, first_at: DateTime.now.since(15.minutes) do
     instances.stop!(5.minutes)
   end
 
-  scheduler.interval 25.minutes.to_i, first_at: DateTime.now.since((30).minutes) do
+  scheduler.interval 25.minutes.to_i, first_at: DateTime.now.since((22.5).minutes) do
     MongoCluster::ReplicaSet.primary_step_down(5.minute)
   end
 

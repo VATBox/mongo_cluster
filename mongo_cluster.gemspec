@@ -8,6 +8,7 @@ Gem::Specification.new do |spec|
   spec.version       = MongoCluster::VERSION
   spec.authors       = ["Steb Veksler"]
   spec.email         = ["steb@vatbox.com"]
+  spec.homepage      = 'http://www.vatbox.com'
   spec.summary       = 'Mongo Cluster Creation'
   spec.description   = 'Create / Modify Mongo Cluster on AWS'
   spec.license       = "MIT"
@@ -26,22 +27,22 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_development_dependency "bundler"
-  spec.add_development_dependency "rake", "~> 10.0"
-  spec.add_development_dependency "rspec", "~> 3.0"
-  spec.add_dependency 'activesupport'
-  spec.add_dependency 'aws-sdk-ec2'
-  spec.add_dependency 'aws-sdk-kms'
-  spec.add_dependency 'aws-sdk-glacier'
-  spec.add_dependency 'aws-sdk-sns'
-  spec.add_dependency 'aws-sdk-s3'
-  spec.add_dependency 'aws-sdk-efs'
-  spec.add_dependency 'aws-sdk-cloudformation'
-  spec.add_dependency 'daemons'
-  spec.add_dependency 'dogstatsd-ruby'
-  spec.add_dependency 'mongo'
-  spec.add_dependency 'net-ssh'
-  spec.add_dependency 'rufus-scheduler'
-  spec.add_dependency 'parallel'
-  spec.add_dependency 'treehash'
+  spec.add_development_dependency 'bundler', '~> 1.0'
+  spec.add_development_dependency 'rake', '~> 10.0'
+  spec.add_development_dependency 'rspec', '~> 3.0'
+  spec.add_dependency 'activesupport', '~> 5.0'
+  spec.add_dependency 'aws-sdk-ec2', '~> 1.0'
+  spec.add_dependency 'aws-sdk-kms', '~> 1.0'
+  spec.add_dependency 'aws-sdk-glacier', '~> 1.0'
+  spec.add_dependency 'aws-sdk-sns', '~> 1.0'
+  spec.add_dependency 'aws-sdk-s3', '~> 1.0'
+  spec.add_dependency 'aws-sdk-efs', '~> 1.0'
+  spec.add_dependency 'aws-sdk-cloudformation', '~> 1.0'
+  spec.add_dependency 'daemons', '~> 1.0'
+  spec.add_dependency 'dogstatsd-ruby', '~> 3.0'
+  spec.add_dependency 'mongo', '~> 2.4'
+  spec.add_dependency 'net-ssh', '~> 4.0'
+  spec.add_dependency 'rufus-scheduler', '~> 3.0'
+  spec.add_dependency 'parallel', '~> 1.0'
+  spec.add_dependency 'treehash', '= 0.0.2'
 end

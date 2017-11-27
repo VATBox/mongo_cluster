@@ -19,7 +19,7 @@ module MongoCluster
     Storage.init
     Security.init
     set_conf
-    start
+    restart
     chkconfig_on
   end
 

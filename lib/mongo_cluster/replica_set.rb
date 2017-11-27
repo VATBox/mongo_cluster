@@ -20,12 +20,12 @@ module MongoCluster
     def self.init
       initiate
       wait_to_become_primary
-      User.create_root unless Shell.login?
-      User.create_data_dog
-      status
     rescue Exception => exception
       raise exception unless exception.message == 'AlreadyInitialized'
       reconfig
+    ensure
+      User.create_root unless Shell.login?
+      User.create_data_dog
       status
     end
 

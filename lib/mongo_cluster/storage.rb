@@ -56,6 +56,7 @@ module MongoCluster
       append_mounts
       mount_paths
       link_journal_to_data
+      remove_lock_files
       chown_paths
     end
 
@@ -107,6 +108,15 @@ module MongoCluster
 
     def self.link_journal_to_data
       FileUtils.ln_s(mounts.journal.path, mounts.data.path, force: true)
+    end
+
+    def self.remove_lock_files
+      mounts
+          .data
+          .path
+          .children
+          .select {|child| child.fnmatch?('*.lock')}
+          .each(&:delete)
     end
 
     def self.devices_to_xfs

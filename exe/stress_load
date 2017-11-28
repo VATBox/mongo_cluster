@@ -38,6 +38,7 @@ Daemons.run_proc('stress_load', monitor: true, dir_mode: :system, log_output: tr
   mongo_clients = MongoClients.new(threads)
   mongo_clients.next.drop
   missing_ids = []
+  log_file = Pathname('/log/stress_load.log')
 
   threads.times do
 
@@ -48,14 +49,11 @@ Daemons.run_proc('stress_load', monitor: true, dir_mode: :system, log_output: tr
             .next
             .insert_one(user)
       rescue => exception
-        missing_ids.push(user[:id])
+        missing_ids.push(user)
+        log_file.write(missing_ids.to_json)
       end
     end
 
-  end
-
-  scheduler.interval 30.minutes.to_i do
-    DataDog.statsd.event('Missing Ids', missing_ids.to_json, alert_type: 'error') unless missing_ids.empty?
   end
 
   scheduler.join

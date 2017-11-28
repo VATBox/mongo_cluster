@@ -5,7 +5,7 @@ module Aws
   module Instance
     class Volume
 
-      delegate :create_snapshot, :delete, :snapshots, to: :@object
+      delegate :create_snapshot, :create_tags, :delete, :snapshots, to: :@object
 
       attr_reader :object
       attr_reader :device
@@ -20,7 +20,7 @@ module Aws
       end
 
       def tags
-        Hash[object.tags.map(&:entries)]
+        HashWithIndifferentAccess[object.tags.map(&:entries)]
       end
 
       def backup

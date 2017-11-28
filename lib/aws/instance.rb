@@ -22,7 +22,7 @@ module Aws
     end
 
     mattr_reader :tags do
-      Hash[client.tags.map(&:entries)]
+      HashWithIndifferentAccess[client.tags.map(&:entries)]
     end
 
     def self.all

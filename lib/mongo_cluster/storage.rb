@@ -48,6 +48,7 @@ module MongoCluster
     end
 
     def self.init
+      rename_volumes
       set_udev
       set_limits
       create_mongo_run_path
@@ -117,6 +118,25 @@ module MongoCluster
           .children
           .select {|child| child.fnmatch?('*.lock')}
           .each(&:delete)
+    end
+
+    def self.rename_volumes
+      path_by_device = self.path_by_device
+      Aws::Instance.volumes.each do |volume|
+        next unless devices.include?(volume.device)
+        path_by_device
+            .fetch(volume.device)
+            .to_s
+            .prepend(::Aws::Instance.tag(:Name))
+            .tap {|tag| volume.create_tags(tags: [{key: 'Name', value: tag}])}
+      end
+    end
+
+    def self.path_by_device
+      Configuration
+          .fetch(:storage)
+          .values
+          .each_with_object(HashWithIndifferentAccess.new) {|mount, hash| hash.store(*mount.values_at(:device, :path))}
     end
 
     def self.devices_to_xfs

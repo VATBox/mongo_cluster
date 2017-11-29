@@ -1,8 +1,6 @@
 # MongoCluster
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/mongo_cluster`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+DevOps tool to install Mongo Cluster on Amazon EC2 instances via CloudFormation
 
 ## Installation
 
@@ -22,10 +20,10 @@ Or install it yourself as:
     
 ##Requirements
 
-OS:
+### OS
 [Amazon Linux AMI](https://aws.amazon.com/amazon-linux-ami/)
 
-Packages:
+### Packages
 
       yum -y update
       yum install -y git
@@ -42,25 +40,27 @@ Packages:
       yum install -y ruby23-devel
       alternatives --set ruby /usr/bin/ruby2.3
 
-CloudFormation:
+### CloudFormation
 
-**AWS::KMS::Key:**
+##### AWS::KMS::Key
 
-`To decrypt DataDog API, Mongo User and KeyFile.`
+`To decrypt DataDog API, Mongo User and KeyFile`
 
-**AWS::EFS::FileSystem:**
+##### AWS::EFS::FileSystem
 
-`Elastic storage for generic action, backup and dumps.`
+`Elastic storage for generic action, backup and dumps`
 
-**AWS::S3::Bucket:**
+##### AWS::S3::Bucket
 
 `Bucket to store dump tars`
 
 ## Usage
 
-**Install Mongo:**
+### Install Mongo
 
-Metadata on PrimaryInstance:
+    $ /usr/local/bin/install_mongo
+
+##### Metadata on PrimaryInstance
 
       Configuration:
         storage:
@@ -85,30 +85,33 @@ Metadata on PrimaryInstance:
           port: !Ref Port
           size: !Ref Size
 
-Create storage mounts for log, journal, data and efs based on Configuration Metadata.
-Decrypt KeyFile resource with KMS to `/mongo_auth/mongodb.key`.
-Define Mongo Configuration to `/etc/mongod.conf` based on Configuration Metadata.
-Set the Mongo Service to boot at startup.
-
-    $ /usr/local/bin/install_mongo
+* Name tag each volume $instance_name/$path (MongoCluster-PrimaryInstance/data).
+* Set [ulimits](https://docs.mongodb.com/manual/reference/ulimit/) and [udev for WiredTiger](https://docs.mongodb.com/manual/administration/production-notes/)
+* Build xfs filesystem on each device, skip if already xfs.
+* Create storage mounts for log, journal, data and efs based on metadata.
+* Decrypt KeyFile resource with KMS to `/mongo_auth/mongodb.key`.
+* Define Mongo Configuration to `/etc/mongod.conf` based on metadata.
+* Set the Mongo Service to boot at startup.
     
-**Install Monitor:**
+### Install Monitor
 
-Metadata on PrimaryInstance:
+    $ /usr/local/bin/install_monitor
+    
+##### Metadata on PrimaryInstance
 
       Configuration:
         monitor:
           api_key: !If [Monitor, !GetAtt EncryptedDataDogApiKey.CipherText, !Ref DataDogApiKey]
           
-Define DataDog Configuration to `/etc/dd-agent/datadog.conf`.
-Integrate Mongo statistics to DataDog via Configuration in `/etc/dd-agent/conf.d/mongo.yaml`
+* Define DataDog Configuration to `/etc/dd-agent/datadog.conf`.
+* Integrate Mongo statistics to DataDog via Configuration in `/etc/dd-agent/conf.d/mongo.yaml`
 
-    $ /usr/local/bin/install_monitor
+### Install Backup Scheduler
 
+    $ /usr/local/bin/install_backup_scheduler
+    $ /usr/local/bin/backup_scheduler start|stop|status|restart
 
-**Install Backup Scheduler:**
-
-Metadata on PrimaryInstance:
+##### Metadata on PrimaryInstance
 
       Configuration:
         backup:
@@ -119,16 +122,14 @@ Metadata on PrimaryInstance:
             hourly: !Ref HourlyExpiration
             daily: !Ref DailyExpiration
             
-Backup retention policy based on Configuration Metadata.
-Create backup daemon to schedule snapshot, dump and clean up jobs.
+* Backup retention policy (expiration in x days) based on metadata.
+* Create backup daemon to schedule snapshot, dump and clean up jobs.
 
-        $ /usr/local/bin/install_backup_scheduler
-        $ /usr/local/bin/backup_scheduler start|stop|status|restart
-   
-   
-**Define ReplicaSet:**
+## Define ReplicaSet
 
-Metadata on each ReplicaInstance:
+    $ /usr/local/bin/define_replica_set
+
+##### Metadata on each ReplicaInstance
 
       ReplicaMember:
         id: 1
@@ -139,12 +140,10 @@ Metadata on each ReplicaInstance:
         priority: 10
         votes: 1
       
-Should run only on the Primary instance.
-Wait to all cloudformation instance to complete creation.
-Initiate ReplicaSet based on all instances metadata
-Create root and monitor users.
-
-        $ /usr/local/bin/define_replica_set
+* Should run only on the Primary instance.
+* Wait to all CloudFormation's instances to complete creation.
+* Initiate ReplicaSet based on all instances metadata
+* Create root and monitor users.
 
 ## Development
 

@@ -38,6 +38,7 @@ module MongoCluster
             .minutely
             .days
             .ago
+            .midnight
       end
 
       def self.hourly_expiration
@@ -45,6 +46,7 @@ module MongoCluster
             .hourly
             .days
             .ago
+            .midnight
       end
 
       def self.daily_expiration
@@ -52,6 +54,7 @@ module MongoCluster
             .daily
             .days
             .ago
+            .midnight
       end
 
       def self.hourly_retention_dates

@@ -24,12 +24,14 @@ module MongoCluster
     def self.to_s3(host: 'localhost', port: ReplicaSet.settings.port, database_name: nil)
       to_tar(host: host, port: port, database_name: database_name)
       Aws::S3.upload!(Files.tar_path)
+    ensure
       Files.clear
     end
 
     def self.to_glacier(host: 'localhost', port: ReplicaSet.settings.port, database_name: nil)
       to_tar(host: host, port: port, database_name: database_name)
       Aws::Glacier.upload_archive(Files.tar_path)
+    ensure
       Files.clear
     end
 
@@ -45,7 +47,7 @@ module MongoCluster
 
 
     def self.generate_shell_command(host, port, path)
-      format('mongodump --host %s --port %s --verbose=5 --gzip --out=%s',host, port, path)
+      format('mongodump --host %s --port %s --verbose=5 --numParallelCollections 8 --gzip --out=%s',host, port, path)
     end
 
   end

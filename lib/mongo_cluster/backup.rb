@@ -39,7 +39,10 @@ module MongoCluster
           .sort_by(&:start_time)
           .tap(&Policy.method(:keep_minutely_snapshots))
           .tap(&Policy.method(:keep_retention_snapshots))
-          .each(&:delete)
+          .each do |snapshot|
+        snapshot.delete
+        sleep 1
+      end
     end
 
     def self.member_sync!

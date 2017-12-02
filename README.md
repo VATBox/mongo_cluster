@@ -18,7 +18,7 @@ Or install it yourself as:
 
     $ gem install mongo_cluster
     
-##Requirements
+## Requirements
 
 ### OS
 [Amazon Linux AMI](https://aws.amazon.com/amazon-linux-ami/)

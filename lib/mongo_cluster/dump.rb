@@ -1,5 +1,6 @@
 require_relative 'shell'
 require_relative 'dump/files'
+require_relative 'dump/tar'
 require_relative '../aws/stack'
 require_relative '../aws/s3'
 require_relative '../aws/glacier'
@@ -18,21 +19,23 @@ module MongoCluster
 
     def self.to_tar(host: 'localhost', port: ReplicaSet.settings.port, database_name: nil)
       to_efs(host: host, port: port, database_name: database_name)
-      Files.to_tar
+      Tar.write!
     end
 
     def self.to_s3(host: 'localhost', port: ReplicaSet.settings.port, database_name: nil)
       to_tar(host: host, port: port, database_name: database_name)
-      Aws::S3.upload!(Files.tar_path)
+      Aws::S3.upload!(Tar.path)
     ensure
       Files.clear
+      Tar.clear
     end
 
     def self.to_glacier(host: 'localhost', port: ReplicaSet.settings.port, database_name: nil)
       to_tar(host: host, port: port, database_name: database_name)
-      Aws::Glacier.upload_archive(Files.tar_path)
+      Aws::Glacier.upload_archive(Tar.path)
     ensure
       Files.clear
+      Tar.clear
     end
 
     private

@@ -22,11 +22,11 @@ module MongoCluster
         retention_dates = hourly_retention_dates | daily_retention_dates
         snapshots.tap do |snapshots|
           snapshots
-              .keep_if
+              .delete_if
               .with_index do |snapshot, index|
-            next_snapshot = snapshots.fetch(index + 1, OpenStruct.new(start_time: snapshot.start_time.dup.end_of_hour))
+            next_snapshot = snapshots.fetch(index + 1, OpenStruct.new(start_time: snapshot.start_time.dup.since(1.day)))
             date_range = Range.new(snapshot.start_time, next_snapshot.start_time)
-            retention_dates.none? {|retention_date| date_range.cover?(retention_date)}
+            retention_dates.any? {|retention_date| date_range.cover?(retention_date)}
           end
         end
       end

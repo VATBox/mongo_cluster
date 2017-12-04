@@ -1,6 +1,7 @@
 require 'fileutils'
 require 'active_support/core_ext/class/attribute_accessors'
 require_relative 'configuration'
+require_relative 'storage/archive'
 require_relative '../aws/kms'
 require_relative '../aws/efs'
 require_relative '../helpers/external_executable'
@@ -59,6 +60,10 @@ module MongoCluster
       link_journal_to_data
       remove_lock_files
       chown_paths
+    end
+
+    def self.archive_data_to_s3
+      Archive.new(mounts.data.path).to_s3
     end
 
     def self.mount_paths

@@ -8,45 +8,51 @@ module MongoCluster
   module Storage
     class Archive
 
-      cattr_reader :path do
-        Aws::Efs
-            .path
-            .join('archive.tar.gz')
-      end
+      %i[path_to_archive archive_name queue].each(&method(:attr_reader))
 
-      attr_reader :path_to_archive
-      attr_reader :queue
-
-      def initialize(path)
-        @path_to_archive = path
-        @queue = Queue.new
+      def initialize(path, archive_name: path.basename)
+        @path_to_archive, @archive_name, @queue = path, archive_name, Queue.new
         all.each {|file| queue.push(TarFile.new(file, path_to_archive))}
       end
 
-      def to_efs
-        clear
-        path.open('wb') do |tar_gz|
-          Zlib::GzipWriter.wrap(tar_gz) do |gz|
-            Gem::Package::TarWriter.new(gz) do |tar|
-              directories_names.each {|directory_name| tar.mkdir(directory_name, 33188)}
-              next_file.write(tar) until queue.empty?
+      def to_tar_gz(path = tar_gz_path)
+        path.tap do |path|
+          path.open('wb') do |tar_gz|
+            Zlib::GzipWriter.wrap(tar_gz) do |gz|
+              to_tar(gz)
             end
           end
         end
-      end
-
-      def to_s3
-        to_efs
-        Aws::S3.upload!(path)
-      ensure
-        clear
-      end
-
-      def clear
+      rescue => exception
         path.delete if path.exist?
+        raise exception
+      end
+
+      def to_tar(path = tar_path)
+        path.tap do |path|
+          path = path.open('wb') unless path.is_a?(Zlib::GzipWriter)
+          Gem::Package::TarWriter.new(path) do |tar|
+            directories_names.each {|directory_name| tar.mkdir(directory_name, 33188)}
+            next_file.write(tar) until queue.empty?
+          end
+        end
+      rescue => exception
+        path.delete unless path.is_a?(Zlib::GzipWriter) || !path.exist?
+        raise exception
       end
 
       private
+
+      def tar_path
+        Aws::Efs
+            .path
+            .join(archive_name)
+            .sub_ext('.tar')
+      end
+
+      def tar_gz_path
+        tar_path.sub_ext('.tar.gz')
+      end
 
       def all
         path_to_archive

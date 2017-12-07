@@ -6,9 +6,9 @@ require_relative '../helpers/json'
 module MongoCluster
   module User
 
-    def self.create_root
-      drop_user('admin')
-      create_user(generate_root_user)
+    def self.create_root(**args)
+      drop_user('admin', **args)
+      create_user(generate_root_user, **args)
     end
 
     def self.create_data_dog
@@ -16,12 +16,12 @@ module MongoCluster
       create_user(generate_data_dog_user) unless DataDog.api_key.blank?
     end
 
-    def self.create_user(user_hash)
-      Shell.eval("db.createUser(#{user_hash.to_json})")
+    def self.create_user(user_hash, **args)
+      Shell.eval("db.createUser(#{user_hash.to_json})", **args)
     end
 
-    def self.drop_user(user_name)
-      Shell.eval("db.dropUser(#{user_name.to_json})")
+    def self.drop_user(user_name, **args)
+      Shell.eval("db.dropUser(#{user_name.to_json})", **args)
     end
 
     def self.all

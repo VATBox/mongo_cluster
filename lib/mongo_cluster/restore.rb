@@ -1,49 +1,41 @@
-require_relative 'shell'
+require_relative 'security'
+require_relative 'storage'
 require_relative '../aws/stack'
 require_relative '../aws/s3'
 require_relative '../aws/efs'
-require_relative 'storage'
 
 module MongoCluster
-  module Restore
-    extend ExternalExecutable
+  class Restore
+    include ExternalExecutable
 
-    mattr_reader :path do
-      Aws::Efs.path
+    %i[path host port input_flag].each(&method(:attr_reader))
+
+    def initialize(restore_path, host: 'localhost', port: ReplicaSet.settings.port)
+      @path, @host, @port = restore_path, host, port
     end
 
-    def self.from_file(host: 'localhost', port: ReplicaSet.settings.port, database_name: nil)
-      shell_command = generate_shell_command(host, port, file_path(database_name))
-      concat_oplog_flag(shell_command) unless database_name
-      Shell.concat_login_flags(shell_command) if Shell.login?
-      run(shell_command, log_file: log_file(database_name))
+    def preform(*flags, **args)
+      shell_command = generate_shell_command(host, port)
+      concat_flags(shell_command, flags) unless flags.empty?
+      Security.concat_login_flags(shell_command)
+      run_in_background(shell_command, **args)
     end
 
     private
 
-    def self.file_path(database_name)
-      file_name = database_name || 'dump_all'
-      path
-          .join(file_name)
-          .sub_ext('.gz')
+    def generate_shell_command(host, port)
+      format('mongorestore --host %s --port %s --verbose=5 --gzip %s',host, port, input_flag)
     end
 
-    def self.log_file(database_name)
-      file_name = database_name || 'dump_all'
-      Storage
-          .mounts
-          .log
-          .path
-          .join(file_name)
-          .sub_ext('.log')
+    def input_flag
+      path.file? ? " --archive=#{path}" : " --dir=#{path}"
     end
 
-    def self.concat_oplog_flag(shell_command)
-      shell_command.concat(' --oplogReplay')
-    end
-
-    def self.generate_shell_command(host, port, path)
-      format('mongorestore --host %s --port %s --verbose=5 --drop --gzip --archive=%s',host, port, path)
+    def concat_flags(shell_command, flags)
+      flags
+          .join(' --')
+          .prepend(' --')
+          .tap {|flags_string| shell_command.concat(flags_string)}
     end
 
   end

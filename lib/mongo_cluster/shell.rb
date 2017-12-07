@@ -6,33 +6,26 @@ module MongoCluster
   module Shell
     extend ExternalExecutable
 
-    def self.eval(cmd, host: 'localhost', port: ReplicaSet.settings.port)
+    def self.eval(cmd, host: 'localhost', port: ReplicaSet.settings.port, skip_login: false, **args)
       shell_command = generate_shell_command(host, port, cmd)
-      concat_login_flags(shell_command) unless Security.allow_anonymous?
-      run(shell_command)
+      Security.concat_login_flags(shell_command) unless skip_login
+      run(shell_command, **args)
     end
 
-    def self.login?
-      generate_shell_command('localhost', ReplicaSet.settings.port, 'db.getName()')
-          .concat(login_flags)
-          .tap {|shell_command| run(shell_command)}
+    def self.root_login?
+      generate_shell_command('localhost', ReplicaSet.settings.port, 'db.getName()').tap do |shell_command|
+        shell_command.concat(Security.send(:login_flags))
+        run(shell_command)
+      end
       true
     rescue
       false
-    end
-
-    def self.concat_login_flags(shell_command)
-      shell_command.concat(login_flags)
     end
 
     private
 
     def self.generate_shell_command(host, port, cmd)
       format('mongo admin --host %s --port %s --quiet --eval \'%s\'',host, port, cmd)
-    end
-
-    def self.login_flags
-      format(' --username %s --password %s --authenticationDatabase admin', Security.settings.username, Security.settings.password)
     end
 
   end

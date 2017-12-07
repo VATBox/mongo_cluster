@@ -9,10 +9,7 @@ module MongoCluster
 
       delegate :read, :eof?, to: :@object
 
-      attr_reader :object
-      attr_reader :path
-      attr_reader :mode
-      attr_reader :part_size
+      %i[object path mode part_size].each(&method(:attr_reader))
 
       def initialize(file_path, path_to_archive)
         @object = file_path.open('rb')

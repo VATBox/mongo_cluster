@@ -1,7 +1,9 @@
 require 'yaml'
+require_relative 'mongo_cluster/dump'
 require_relative 'mongo_cluster/security'
 require_relative 'mongo_cluster/storage'
 require_relative 'mongo_cluster/replica_set'
+require_relative 'aws/s3'
 require_relative 'helpers/service'
 
 module MongoCluster
@@ -30,6 +32,13 @@ module MongoCluster
 
   def self.read_conf
     YAML.load_file(conf_path)
+  end
+
+  def self.dump_to_s3
+    archive_path = Dump.new.as_archive
+    Aws::S3.upload!(archive_path)
+  ensure
+    archive_path.delete if archive_path.is_a?(Pathname) && archive_path.exist?
   end
 
   private

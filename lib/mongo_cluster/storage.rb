@@ -63,7 +63,10 @@ module MongoCluster
     end
 
     def self.archive_data_to_s3
-      Archive.new(mounts.data.path).to_s3
+      tar_gz_path = Archive.new(mounts.data.path).to_tar_gz
+      Aws::S3.upload!(tar_gz_path)
+    ensure
+      tar_gz_path.delete if tar_gz_path.is_a?(Pathname) && tar_gz_path.exist?
     end
 
     def self.mount_paths

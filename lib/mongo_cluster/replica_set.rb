@@ -23,37 +23,38 @@ module MongoCluster
         when 'InvalidReplicaSetConfig', :no_code then reconfig
         else raise $1
       end
-      wait_to_become_primary
-      User.create_root unless Shell.login?
+      skip_login = !Shell.root_login?
+      wait_to_become_primary(skip_login: skip_login)
+      User.create_root(skip_login: skip_login)
       User.create_data_dog
     end
 
-    def self.initiate
-      result = Shell.eval("rs.initiate(#{rs_default_initiate.to_json})")
+    def self.initiate(**args)
+      result = Shell.eval("rs.initiate(#{rs_default_initiate.to_json})", **args)
       confirm_result(result)
     end
 
-    def self.reconfig
-      result = Shell.eval("conf = rs.conf(); conf._id = #{settings.name.to_json}; conf.members = #{generate_members.to_json}; rs.reconfig(conf, {force: true})")
+    def self.reconfig(**args)
+      result = Shell.eval("conf = rs.conf(); conf._id = #{settings.name.to_json}; conf.members = #{generate_members.to_json}; rs.reconfig(conf, {force: true})", **args)
       confirm_result(result)
     end
 
-    def self.conf
-      conf = Shell.eval('JSON.stringify(rs.conf())')
+    def self.conf(**args)
+      conf = Shell.eval('JSON.stringify(rs.conf())', **args)
       JSON.parse_with_cast(conf)
     end
 
-    def self.status
-      status = Shell.eval('JSON.stringify(rs.status())')
+    def self.status(**args)
+      status = Shell.eval('JSON.stringify(rs.status())', **args)
       JSON.parse_with_cast(status)
     end
 
-    def self.primary?
-      is_master.fetch(:ismaster)
+    def self.primary?(**args)
+      is_master(**args).fetch(:ismaster)
     end
 
-    def self.is_master
-      is_master = Shell.eval('JSON.stringify(db.isMaster())')
+    def self.is_master(**args)
+      is_master = Shell.eval('JSON.stringify(db.isMaster())', **args)
       JSON.parse_with_cast(is_master)
     end
 
@@ -100,9 +101,9 @@ module MongoCluster
           .each {|member| member[:_id] = member.delete(:id)}
     end
 
-    def self.wait_to_become_primary
+    def self.wait_to_become_primary(**args)
       Timeout::timeout(60) do
-        until primary?
+        until primary?(**args)
           sleep(5)
         end
       end

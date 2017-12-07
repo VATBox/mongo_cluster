@@ -23,13 +23,26 @@ module MongoCluster
     end
 
     def self.create_key_file
-      settings.keyFile.values_at(:path, :value).tap do |path, value|
+      settings
+          .keyFile
+          .values_at(:path, :value)
+          .tap do |path, value|
         path.dirname.mkpath
         FileUtils.touch(path)
         File.write(path, value)
         FileUtils.chmod(0400, path)
         FileUtils.chown_R('mongod', 'mongod', path.dirname)
       end
+    end
+
+    def self.concat_login_flags(shell_command)
+      shell_command.concat(login_flags) unless allow_anonymous?
+    end
+
+    private
+
+    def self.login_flags
+      format(' --username %s --password %s --authenticationDatabase admin', settings.username, settings.password)
     end
 
   end

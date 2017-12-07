@@ -1,10 +1,9 @@
 #!/usr/bin/env ruby
 require 'daemons'
 require 'rufus-scheduler'
-require_relative '../lib/mongo_cluster/backup'
-require_relative '../lib/mongo_cluster/dump'
 require_relative '../lib/data_dog'
-require_relative '../lib/mongo_cluster/storage'
+require_relative '../lib/mongo_cluster'
+require_relative '../lib/mongo_cluster/backup'
 
 Daemons.run_proc('backup_scheduler', dir_mode: :system, monitor: true, log_output: true, log_dir: MongoCluster::Backup.log_path) do
   scheduler = Rufus::Scheduler.new
@@ -26,19 +25,11 @@ Daemons.run_proc('backup_scheduler', dir_mode: :system, monitor: true, log_outpu
 
   scheduler.interval 1.day.to_i, first_at: Time.now.end_of_day, overlap: false do
     DataDog.event_exception do
-      DataDog.statsd.time('backup.archives') do
-        MongoCluster::Storage.archive_data_to_s3
+      DataDog.statsd.time('backup.dumps') do
+        MongoCluster.dump_to_s3
       end
     end
   end
-
-  # scheduler.interval 1.day.to_i, first_at: Time.now.end_of_day, overlap: false do
-  #   DataDog.event_exception do
-  #     DataDog.statsd.time('backup.dumps') do
-  #       MongoCluster::Dump.to_s3
-  #     end
-  #   end
-  # end
 
   scheduler.join
 end

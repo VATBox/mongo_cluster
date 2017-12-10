@@ -11,13 +11,17 @@ module Aws
     end
 
     mattr_reader :bucket do
-      Aws::S3::Bucket.new(
-          Stack
-              .object
-              .resource_summaries
-              .find {|resource_summary| resource_summary.resource_type == type}
-              .physical_resource_id
-      )
+      begin
+        Aws::S3::Bucket.new(
+            Stack
+                .object
+                .resource_summaries
+                .find {|resource_summary| resource_summary.resource_type == type}
+                .physical_resource_id
+        )
+      rescue NoMethodError
+        nil
+      end
     end
 
     def self.upload!(path, object_key = '')

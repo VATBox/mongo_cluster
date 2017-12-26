@@ -36,5 +36,12 @@ module Aws
       object.resource(logical_id)
     end
 
+    def self.fetch_parameter(parameter_key)
+      object
+          .parameters
+          .find {|parameter| parameter.fetch('parameter_key') == parameter_key}
+          .parameter_value
+    end
+
   end
 end

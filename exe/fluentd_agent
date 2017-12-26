@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+require 'daemons'
+require 'fluent/supervisor'
+require_relative '../lib/mongo_cluster'
+require_relative '../lib/mongo_cluster/logs'
+
+Daemons.run_proc('fluentd_agent', dir_mode: :system, monitor: true, log_output: true, log_dir: MongoCluster::Storage.mounts.log.path) do
+  Fluent::Supervisor
+      .new(Fluent::Supervisor.default_options.merge(supervise: false, process_name: 'fluentd_agent'))
+      .run_worker
+end

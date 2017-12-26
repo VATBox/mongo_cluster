@@ -31,11 +31,6 @@ class MongoClients
 
 end
 
-client = MongoClients.new(1).next
-ids = client.distinct(:id)
-missing_ids = JSON.parse(File.read('/log/stress_load.log')).map {|user| user['id']}
-lost_ids = Range.new(*ids.minmax).to_a - ids - missing_ids
-
 Daemons.run_proc('stress_load', monitor: true, dir_mode: :system, log_output: true, log_dir: '/tmp') do
   scheduler = Rufus::Scheduler.new(max_work_threads: 200)
   threads = 150

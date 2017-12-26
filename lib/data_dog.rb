@@ -1,3 +1,4 @@
+require 'yaml'
 require 'datadog/statsd'
 require 'active_support/core_ext/class/attribute_accessors'
 require_relative 'helpers/service'
@@ -27,6 +28,12 @@ module DataDog
     Datadog::Statsd.new('localhost', 8125)
   end
 
+  mattr_reader :process_conf do
+    conf_path
+         .dirname
+         .join('conf.d/process.yaml')
+  end
+
   def self.enabled?
     !api_key.blank?
   end
@@ -46,7 +53,22 @@ module DataDog
     raise exception unless skip
   end
 
+  def self.append_process_conf(service_name)
+    init_process_yaml unless process_conf.exist?
+    YAML
+        .load(process_conf.read)
+        .tap {|process_hash| process_hash.fetch('instances').push('name' => service_name, 'pid_file' => "/var/run/#{service_name}.pid")}
+        .to_yaml
+        .tap {|process_conf_string| File.write(process_conf, process_conf_string)}
+  end
+
   private
+
+  def self.init_process_yaml
+    {'init_config' => nil, 'instances' => []}
+        .to_yaml
+        .tap {|process_conf_string| File.write(process_conf, process_conf_string)}
+  end
 
   def self.set_conf
     File.write(conf_path, generate_conf)

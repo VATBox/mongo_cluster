@@ -25,8 +25,8 @@ module MongoCluster
       append_chkconfig
       link_daemon_to_init_d
       chkconfig_add
-      set_data_dog_conf if DataDog.enabled?
-      start
+      DataDog.append_process_conf(service_name) if DataDog.enabled?
+      restart
     end
 
     def self.data_volume
@@ -63,49 +63,10 @@ module MongoCluster
 
     private
 
-    def self.link_daemon_to_init_d
-      FileUtils.ln_s(daemon_path, '/etc/init.d/', force: true)
-    end
-
-    def self.append_chkconfig
-      daemon_path
-          .readlines
-          .each(&:chomp!)
-          .delete_if {|line| line =~ /chkconfig/}
-          .tap {|lines| lines.first.concat(chkconfig_parameters)}
-          .join("\n")
-          .tap {|daemon_string| File.write(daemon_path, daemon_string)}
-    end
-
-    def self.daemon_path
-      Pathname('/usr/local/bin').join(service_name)
-    end
-
-    def self.chkconfig_parameters
-      "\n# chkconfig: 2345 20 80"
-    end
-
     def self.find_data_volume
       ::Aws::Instance
           .volumes
           .find{ |volume| volume.device == Storage.mounts.data.device}
-    end
-
-    def self.set_data_dog_conf
-      DataDog
-          .conf_path
-          .dirname
-          .join('conf.d/process.yaml')
-          .tap {|process_conf| File.write(process_conf, generate_data_dog_conf)}
-    end
-
-    def self.generate_data_dog_conf
-      <<-EOF
-init_config:
-instances:
-  - name: #{service_name}
-    pid_file: /var/run/#{service_name}.pid
-      EOF
     end
 
     def self.raise_member_not_sync(member)

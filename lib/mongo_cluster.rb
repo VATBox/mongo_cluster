@@ -56,6 +56,32 @@ systemLog:
   destination: file
   logAppend: true
   path: #{Storage.mounts.log.path.join('mongod.log')}
+  traceAllExceptions: false
+  component:
+    accessControl:
+      verbosity: 0
+    command:
+      verbosity: 0
+    control:
+      verbosity: 0
+    ftdc:
+      verbosity: 0
+    geo:
+      verbosity: 0
+    index:
+      verbosity: 1
+    network:
+      verbosity: 0
+    query:
+      verbosity: 1
+    replication:
+      verbosity: 0
+    sharding:
+      verbosity: 0
+    storage:
+      verbosity: 0
+    write:
+      verbosity: 1
 
 storage:
   directoryPerDB: true

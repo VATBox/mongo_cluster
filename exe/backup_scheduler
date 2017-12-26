@@ -16,18 +16,28 @@ Daemons.run_proc('backup_scheduler', dir_mode: :system, monitor: true, log_outpu
     end
   end
 
-  scheduler.interval 1.day.to_i, first_at: Time.now.end_of_day, overlap: false do
+  # Every day at midnight
+  scheduler.cron '0 0 * * *', overlap: false do
     DataDog.event_exception do
       MongoCluster::Backup.apply_retention_policy
       DataDog.statsd.histogram('backup.snapshots', MongoCluster::Backup.snapshots_count)
     end
   end
 
-  scheduler.interval 1.day.to_i, first_at: Time.now.end_of_day, overlap: false do
+  # Every day at midnight
+  scheduler.cron '0 0 * * *', overlap: false do
     DataDog.event_exception do
       DataDog.statsd.time('backup.dumps') do
         MongoCluster.dump_to_s3
       end
+    end
+  end
+
+  #Every Tuesday at 23:00
+  scheduler.cron '0 23 * * 4', overlap: false do
+    DataDog.event_exception do
+      DataDog.statsd.histogram('efs.size', Aws::Efs.path.size)
+      Aws::Efs.clear
     end
   end
 

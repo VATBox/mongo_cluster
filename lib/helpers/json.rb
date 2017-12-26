@@ -1,9 +1,10 @@
 require 'active_support/core_ext/hash'
+require 'oj'
 
 module JSON
 
-  def self.parse_with_cast(json)
-    cast_value(parse(json))
+  def self.parse_with_cast(json, **options)
+    cast_value(Oj.load(json, options))
   end
 
   def self.cast_value(value)

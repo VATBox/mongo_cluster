@@ -62,17 +62,17 @@ module MongoCluster
   <parse>
     @type multiline_grok
     time_key timestamp
-    keep_time_key true
+    keep_time_key false
     grok_pattern %{MONGO3_LOG}
   </parse>
 </source>
 
 <filter mongodb.log>
   @type record_modifier
-  remove_keys timestamp
   <record>
     @metadata ${{index: 'mongodb'}}
     environment #{Aws::Instance.tag(:Enviornment)}
+    instance #{Aws::Instance.tag('Name')}
   </record>
 </filter>
 
@@ -83,6 +83,7 @@ module MongoCluster
   <inject>
     time_key @timestamp
     time_type string
+    hostname_key hostname
   </inject>
 </match>
       EOF

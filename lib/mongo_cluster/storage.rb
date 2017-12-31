@@ -76,6 +76,8 @@ module MongoCluster
 
     def self.mount(path)
       run("mount #{path}")
+    rescue => exception
+      raise exception unless exception.message =~ /already mounted/
     end
 
     private
@@ -174,7 +176,7 @@ module MongoCluster
     end
 
     def self.mkfs_xfs(device)
-      run("mkfs.xfs -f #{device}") unless xfs?(device)
+      run("mkfs.xfs -f #{device}") unless xfs?(device) || path_by_device.fetch(device).children.any?
     end
 
     def self.xfs?(device)

@@ -84,7 +84,6 @@ module Aws
     end
 
     def self.wait_for_all_to_complete(instance_count)
-      return if instance_count == 1
       Stack.object.wait_until(max_attempts: 10, delay: 30) do
         all.count {|instance| instance.resource_status =~ /COMPLETE$/} == instance_count
       end

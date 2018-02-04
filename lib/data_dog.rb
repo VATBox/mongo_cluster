@@ -105,7 +105,7 @@ resource="GET|POST /healthcheck","GET /V1"
     <<-EOF
 init_config:
 instances:
-  - server: mongodb://datadog:#{api_key}@#{MongoCluster::ReplicaSet.member.host}
+  - server: mongodb://datadog:#{api_key}@#{Aws::Instance.new.private_ip_address}
     tags:
       - #{Aws::Stack.name}
     EOF

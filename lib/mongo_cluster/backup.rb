@@ -65,6 +65,7 @@ module MongoCluster
 
     def self.find_data_volume
       ::Aws::Instance
+          .new
           .volumes
           .find{ |volume| volume.device == Storage.mounts.data.device}
     end

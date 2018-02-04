@@ -11,10 +11,6 @@ module MongoCluster
       OpenStruct.new(Configuration.fetch(:replication))
     end
 
-    mattr_reader :member do
-      OpenStruct.new(::Aws::Instance.metadata.fetch(:ReplicaMember))
-    end
-
     def self.init
       case status.fetch(:codeName, :no_code)
         when 'NotYetInitialized' then initiate
@@ -94,9 +90,8 @@ module MongoCluster
 
     def self.generate_members
       ::Aws::Instance
-          .all_resources
-          .map! {|instance_resource| instance_resource.metadata_with_cast.fetch(:ReplicaMember)}
-          .each {|member| member[:_id] = member.delete(:id)}
+          .all
+          .map!(&:replica_member)
     end
 
     def self.wait_to_become_primary(**args)

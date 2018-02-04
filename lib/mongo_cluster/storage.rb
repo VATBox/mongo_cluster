@@ -132,12 +132,13 @@ module MongoCluster
 
     def self.rename_volumes
       path_by_device = self.path_by_device
-      Aws::Instance.volumes.each do |volume|
+      instance = ::Aws::Instance.new
+      instance.volumes.each do |volume|
         next unless devices.include?(volume.device)
         path_by_device
             .fetch(volume.device)
             .to_s
-            .prepend(::Aws::Instance.tag(:Name))
+            .prepend(instance.tag(:Name))
             .tap {|tag| volume.create_tags(tags: [{key: 'Name', value: tag}])}
       end
     end

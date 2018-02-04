@@ -71,8 +71,8 @@ module MongoCluster
   @type record_modifier
   <record>
     @metadata ${{index: 'mongodb'}}
-    environment #{Aws::Instance.tag(:Enviornment)}
-    instance #{Aws::Instance.tag('Name')}
+    environment #{Aws::Instance.enviornment}
+    instance #{Aws::Instance.new.tag('Name')}
   </record>
 </filter>
 

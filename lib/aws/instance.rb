@@ -7,46 +7,72 @@ require_relative 'instance/document'
 require_relative '../helpers/json'
 
 module Aws
-  module Instance
+  class Instance
 
-    mattr_reader :id do
-      Document.fetch(:instance_id)
-    end
-
-    mattr_reader :client do
-      ::Aws::EC2::Instance.new(id, region: Document.fetch(:region))
-    end
-
-    mattr_reader :type do
+    cattr_reader :type do
       'AWS::EC2::Instance'
     end
 
-    mattr_reader :tags do
-      HashWithIndifferentAccess[client.tags.map(&:entries)]
+    cattr_reader :environment do
+      ::Aws::EC2::Instance.new(Document.fetch(:instance_id), region: Document.fetch(:region))
+          .tags
+          .find {|tag| tag.key == 'Environment'}
+          .value
     end
 
-    def self.all
-      all_resources
-          .map(&:physical_resource_id)
-          .map!(&Aws::EC2::Instance.method(:new))
+    delegate :private_ip_address, :tags, to: :@object
+
+    attr_reader :object
+    attr_reader :tags_by_key
+
+    def initialize(id = Document.fetch(:instance_id))
+      @object = ::Aws::EC2::Instance.new(id, region: Document.fetch(:region))
     end
 
-    def self.metadata
-      Stack.resource.metadata_with_cast
+    def tag(name)
+      @tags_by_key ||= HashWithIndifferentAccess[tags.map(&:entries)]
+      tags_by_key.fetch(name)
     end
 
-    def self.logical_id
+    def metadata
+      Stack
+          .resource(logical_id: logical_id)
+          .metadata_with_cast
+    end
+
+    def replica_member
+      metadata
+          .fetch(:ReplicaMember)
+          .tap do |member|
+        member[:_id] = member.delete(:id)
+        member[:host] = format('%s:%s', private_ip_address, MongoCluster::ReplicaSet.settings.port)
+      end
+    end
+
+    def logical_id
       tag('aws:cloudformation:logical-id')
     end
 
-    def self.volumes
-      client
+    def resource_status
+      Stack
+          .resource(logical_id: logical_id)
+          .resource_status
+    end
+
+    def volumes
+      object
           .volumes
           .map(&Volume.method(:new))
     end
 
-    def self.signal(status)
+    def signal(status)
       Stack.signal_resource(logical_id, id, status)
+    end
+
+    def self.all
+      all_resources
+          .map {|resource| new(resource.physical_resource_id)}
+          .select {|instance| instance.tag(:Environment) == environment}
     end
 
     def self.all_resources
@@ -58,26 +84,16 @@ module Aws
     end
 
     def self.wait_for_all_to_complete(instance_count)
-      Stack.object.wait_until(max_attempts: 10, delay: 30) do |stack|
-        stack
-            .resource_summaries
-            .count {|resource_summary| instance_type?(resource_summary) && status_complete?(resource_summary)}
-            .eql?(instance_count)
+      return if instance_count == 1
+      Stack.object.wait_until(max_attempts: 10, delay: 30) do
+        all.count {|instance| instance.resource_status =~ /COMPLETE$/} == instance_count
       end
-    end
-
-    def self.tag(name)
-      tags.fetch(name)
     end
 
     private
 
     def self.instance_type?(resource_summary)
       resource_summary.resource_type == type
-    end
-
-    def self.status_complete?(resource_summary)
-      resource_summary.resource_status =~ /COMPLETE$/
     end
 
   end

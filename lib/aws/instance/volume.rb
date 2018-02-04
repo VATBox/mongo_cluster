@@ -2,7 +2,7 @@ require 'aws-sdk-ec2'
 require 'active_support/core_ext/module/delegation'
 
 module Aws
-  module Instance
+  class Instance
     class Volume
 
       delegate :create_snapshot, :create_tags, :delete, :snapshots, to: :@object

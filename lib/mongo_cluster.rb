@@ -50,7 +50,7 @@ module MongoCluster
   def self.generate_conf
     <<-EOF
 net:
-  port: #{ReplicaSet.member.host.split(':').last}
+  port: #{ReplicaSet.settings.port}
 
 systemLog:
   destination: file

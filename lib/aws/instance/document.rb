@@ -3,7 +3,7 @@ require 'active_support/core_ext/class/attribute_accessors'
 require_relative '../../helpers/json'
 
 module Aws
-  module Instance
+  class Instance
     module Document
 
       mattr_reader :uri do

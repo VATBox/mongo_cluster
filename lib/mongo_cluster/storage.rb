@@ -118,6 +118,8 @@ module MongoCluster
     end
 
     def self.link_journal_to_data
+      journal_link_path = mounts.data.path.join(mounts.journal.path.basename)
+      journal_link_path.rmtree if (journal_link_path.exist? && !journal_link_path.symlink?)
       FileUtils.ln_s(mounts.journal.path, mounts.data.path, force: true)
     end
 
